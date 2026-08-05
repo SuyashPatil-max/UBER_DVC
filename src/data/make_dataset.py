@@ -1,31 +1,27 @@
-
-import pandas as pd 
-import logging 
-from pathlib import Path 
-import yaml 
+import pandas as pd
+import logging
+from pathlib import Path
 
 
 logging.basicConfig(
-    level = logging.INFO , 
+    level = logging.INFO,
     format="%(asctime)s - %(name)s- %(levelname)s - %(message)s"
 )
 
-def paths(): 
+def load_paths(): 
     logging.info("Setting all the paths :")
     path = Path(__file__).resolve().parents[2]
-    data_path = path /"data"/"external"
+    data_path = path /"data"/"external"/'ncr_ride_bookings.csv'
     raw_data = path/"data"/"raw"/"raw_data.csv"
-    processed_data = path/"data"/"processed"/"data.csv"
 
     logging.info("All the paths are returned :")
     return {
         'data_path' : data_path , 
-        'raw_data' : raw_data, 
-        'processed_data' : processed_data
+        'raw_data' : raw_data
     }
 
 
-def load_data(data_path)->pd.DataFrame : 
+def load_data(data_path : str)->pd.DataFrame : 
 
     try : 
         logging.info("Loading the data ... ")
@@ -41,12 +37,14 @@ def load_data(data_path)->pd.DataFrame :
 def preprocess(df)->pd.DataFrame : 
 
     try : 
+        logging.info("Preprocessing of data starting...")
         df = df[df['Booking Status'].isin(['Completed', 'Incomplete'])]
         cols =  ['Cancelled Rides by Customer' ,'Reason for cancelling by Customer',
                      'Cancelled Rides by Driver','Driver Cancellation Reason',
                      'Incomplete Rides','Incomplete Rides Reason','Driver Ratings','Customer Rating']
         
         df = df.drop(cols, axis=1)
+        logging.info(f"Shape of raw data : {df.shape}")
         return df 
 
     except Exception as e : 
@@ -54,13 +52,35 @@ def preprocess(df)->pd.DataFrame :
         raise e 
 
 
-def save_data(raw_data , process_data) : 
-    pass 
 
-def save_data(raw_data , processed_data) : 
-    pass
+def save_data(raw_data, raw_data_path ) : 
+    try :
+        logging.info("Saving the raw data... ")
+        raw_data.to_csv(raw_data_path, index = False)
+
+    except Exception as e : 
+        logging.error(f"saving failed due to {e}")
+        raise e 
+
+
 def main() : 
-    pass 
+    try : 
+        paths = load_paths()
+        data_path = paths['data_path']
+        raw_data_path = paths['raw_data']
+    
+        df = load_data(data_path)
+        df = preprocess(df) 
+        save_data(df , raw_data_path)
 
-if __name__ == "__main__" :
-    paths()
+    except Exception as e : 
+       logging.error(f"Main failed due to {e}")
+       raise e 
+
+
+if __name__ == "__main__" : 
+    main() 
+    logging.info("Making data completed : ")
+
+
+    
