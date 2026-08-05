@@ -1,3 +1,19 @@
 build_feature:
   test_size: 0.2
   random_state: 42
+
+smote: 
+    sampling_strategy : 'auto'
+    k_neighbors : 5 
+
+cat_model: 
+    iterations: 1000
+    learning_rate: 0.05
+    depth: 6
+    l2_leaf_reg: 3
+    loss_function: Logloss
+    eval_metric: F1
+    random_seed: 42
+    verbose: 100
+    early_stopping_rounds: 50
+    auto_class_weights: Balanced
