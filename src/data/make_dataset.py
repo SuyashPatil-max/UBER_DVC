@@ -12,7 +12,9 @@ def load_paths():
     logging.info("Setting all the paths :")
     path = Path(__file__).resolve().parents[2]
     data_path = path /"data"/"external"/'ncr_ride_bookings.csv'
-    raw_data = path/"data"/"raw"/"raw_data.csv"
+    raw_path = path/"data"/"raw"
+    raw_path.mkdir(parents = True ,exist_ok =True)
+    raw_data = raw_path/"raw_data.csv"
 
     logging.info("All the paths are returned :")
     return {
@@ -39,7 +41,7 @@ def preprocess(df)->pd.DataFrame :
     try : 
         logging.info("Preprocessing of data starting...")
         df = df[df['Booking Status'].isin(['Completed', 'Incomplete'])]
-        cols =  ['Cancelled Rides by Customer' ,'Reason for cancelling by Customer',
+        cols =  ['Booking ID','Customer ID','Cancelled Rides by Customer' ,'Reason for cancelling by Customer',
                      'Cancelled Rides by Driver','Driver Cancellation Reason',
                      'Incomplete Rides','Incomplete Rides Reason','Driver Ratings','Customer Rating']
         

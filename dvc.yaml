@@ -1,0 +1,19 @@
+stages:
+  data_ingestion:
+    cmd: python src/data/make_dataset.py
+    deps:
+    - src/data/make_dataset.py
+    outs:
+    - data/raw
+
+
+  build_feature:
+    cmd: python src/features/build_features.py
+    deps:
+    - data/raw
+    - params.yaml
+    - src/features/build_features.py
+    outs:
+    - data/processed
+
+
