@@ -25,15 +25,17 @@ logging.basicConfig(
 
 
 logging.info("Setting mlflow and dagshub : ")
+
+token = os.getenv("DAGSHUB_TOKEN")
+if token:
+    dagshub.auth.add_app_token(token)
+    
 mlflow.set_tracking_uri("https://dagshub.com/SuyashPatil-max/UBER_DVC.mlflow")
 dagshub.init(
     repo_owner = 'SuyashPatil-max' , 
     repo_name = 'UBER_DVC' ,
     mlflow = True 
 )
-token = os.getenv("DAGSHUB_TOKEN")
-if token:
-    dagshub.auth.add_app_token(token)
 logging.info("Setting mlflow and dagshub finised ")
 
 
