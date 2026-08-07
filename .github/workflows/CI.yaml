@@ -25,12 +25,6 @@ jobs:
               pip install --upgrade pip
               pip install -r requirements.txt
         
-        - name: Pull Dataset
-          env:
-            DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-          run: |
-            dvc pull
-        
         - name: dvc pipeline
           env: 
               DAGSHUB_TOKEN: ${{secrets.DAGSHUB_TOKEN}}

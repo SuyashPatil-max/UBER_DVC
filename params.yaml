@@ -1,3 +1,6 @@
+data_ingestion: 
+    url: 'https://raw.githubusercontent.com/SuyashPatil-max/uber_datasets/refs/heads/main/ncr_ride_bookings.csv'
+
 build_feature:
   test_size: 0.2
   random_state: 42

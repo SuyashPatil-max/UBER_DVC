@@ -3,10 +3,14 @@ stages:
   data_ingestion:
     cmd: python src/data/make_dataset.py
     deps:
+    - path: params.yaml
+      hash: md5
+      md5: 7a325ac13bf91cb757ee4d7937ea4961
+      size: 504
     - path: src/data/make_dataset.py
       hash: md5
-      md5: d72363067b3665271d2ca4f95138dab5
-      size: 2407
+      md5: f34c2d92c3916d8fc25ee4d11c51b820
+      size: 2948
     outs:
     - path: data/raw
       hash: md5
@@ -23,8 +27,8 @@ stages:
       nfiles: 1
     - path: params.yaml
       hash: md5
-      md5: 9b88aa1c32a4961968fa119ba3dcd5b5
-      size: 370
+      md5: 7a325ac13bf91cb757ee4d7937ea4961
+      size: 504
     - path: src/features/build_features.py
       hash: md5
       md5: 8dfab6a9d60ab234434f583cef34eb5a

@@ -2,6 +2,7 @@ stages:
   data_ingestion:
     cmd: python src/data/make_dataset.py
     deps:
+    - params.yaml
     - src/data/make_dataset.py
     outs:
     - data/raw
