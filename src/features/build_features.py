@@ -3,8 +3,8 @@ import yaml
 from pathlib import Path
 import logging
 from sklearn.model_selection import train_test_split 
-from sklearn.preprocessing import OneHotEncoder ,LabelEncoder
-from category_encoders import TargetEncoder
+from sklearn.preprocessing import OneHotEncoder ,LabelEncoder ,OrdinalEncoder
+from sklearn.preprocessing import PowerTransformer
 import pickle
 
 logging.basicConfig(
@@ -109,11 +109,9 @@ def date_time_features(df):
         df['Month'] = df['Date'].dt.month
         df['Day'] = df['Date'].dt.day
         df['DayOfWeek'] = df['Date'].dt.day_name()
-        df['DayOfWeek_Num'] = df['Date'].dt.dayofweek
         df['Quarter'] = df['Date'].dt.quarter
         df['IsWeekend'] = (df['Date'].dt.dayofweek >= 5).astype(int)
         df['Hour'] = df['Time'].dt.hour
-        df['Minute'] = df['Time'].dt.minute
         df['TimeOfDay'] = df['Hour'].apply(time_of_day)
         df['Season'] = df['Month'].apply(get_season)
 
@@ -130,28 +128,48 @@ def date_time_features(df):
 
 def category_encoder(df):
     try:
-        logging.info("Category encoding starting with Target Encoder:")
+        logging.info("Category encoding starting ")
 
-        cat_cols = df.select_dtypes(include=['object']).columns.tolist()
-        if "Booking Status" in cat_cols:
-            cat_cols.remove("Booking Status")
+        cate_cols = ['Vehicle Type', 'Payment Method',
+                        'TimeOfDay','Season','Quarter','IsWeekend','DayOfWeek']
+        num_cate_cols = ['Pickup Location','Drop Location']
 
-        logging.info(f"Cat cols are {cat_cols}")
-        te = TargetEncoder(cols=cat_cols)
-
-        df[cat_cols] = te.fit_transform(df[cat_cols], df["Booking Status"])
-        logging.info("Category encoding finished")
-        logging.info("Starting label encoding")
-
+        ohe = OneHotEncoder(sparse_output = False ,handle_unknown='ignore')
+        oe = OrdinalEncoder(handle_unknown='use_encoded_value',unknown_value=-1)
         le = LabelEncoder()
-        df["Booking Status"] = le.fit_transform(df["Booking Status"])
-        logging.info("Label encoding finished")
 
-        return df, te, le
+        df[num_cate_cols] = oe.fit_transform(df[num_cate_cols])
+        df['Booking Status'] = le.fit_transform(df['Booking Status'])
+        cate = ohe.fit_transform(df[cate_cols])
 
+        cate = pd.DataFrame(cate ,columns=ohe.get_feature_names_out(),index = df.index)
+        df = df.drop(cate_cols ,axis =1 )
+        df = pd.concat([df , cate] ,axis =1 )
+        logging.info("Caegory encoder done")
+
+        return df ,ohe ,le ,oe
+    
     except Exception as e:
         logging.error(f"Error in category encoding: {e}")
         raise e
+
+
+def preprocessing_nums(df) : 
+    try : 
+        logging.info("Starting nums preprocessing : ")
+
+        nums_cols =  ['Avg VTAT', 'Avg CTAT', 'Booking Value', 'Ride Distance', 'Month',
+       'Day', 'Hour']
+        trf = PowerTransformer(standardize = True)
+        df[nums_cols] = trf.fit_transform(df[nums_cols])
+        logging.info("nums preprocessing done ")
+
+        return df , trf 
+    
+    except Exception as e : 
+        logging.error("nums preprocessig failed ")
+        raise e 
+
 
 def split_data(params, df) -> pd.DataFrame : 
     try : 
@@ -169,7 +187,7 @@ def split_data(params, df) -> pd.DataFrame :
         raise e 
 
 
-def save_data(X_train ,X_test ,y_train ,y_test , processed_path ,te ,le_pkl , models_path) : 
+def save_data(X_train ,X_test ,y_train ,y_test , processed_path ,ohe ,le_pkl ,oe, trf,models_path ) : 
     try : 
         logging.info("Saving the data started...")
         X_train_path = processed_path/"X_train.csv"
@@ -183,8 +201,13 @@ def save_data(X_train ,X_test ,y_train ,y_test , processed_path ,te ,le_pkl , mo
         y_test.to_csv(y_test_path , index = False )
 
         logging.info("Loading ohe and le ") 
-        with open(models_path/"te.pkl" , 'wb') as f : 
-            pickle.dump(te ,f)
+        
+        with open(models_path/"ohe.pkl" , 'wb') as f : 
+            pickle.dump(ohe ,f)
+        with open(models_path/"trf.pkl" , 'wb') as f : 
+                    pickle.dump(trf ,f)
+        with open(models_path/"oe.pkl" , 'wb') as f : 
+                    pickle.dump(oe ,f)
         with open(models_path/"le_pkl.pkl" , 'wb') as f : 
             pickle.dump(le_pkl ,f)
 
@@ -207,10 +230,12 @@ def main() :
         df = load_data(raw_path)
 
         df = date_time_features(df)
-        df,te,Le= category_encoder(df)
+
+        df,trf = preprocessing_nums(df)
+        df,ohe,Le,oe= category_encoder(df)
         logging.info(f"data is {df.columns}")
         X_train ,X_test ,y_train, y_test = split_data(params , df )
-        save_data(X_train ,X_test ,y_train ,y_test ,process_path ,te,Le,models_path)
+        save_data(X_train ,X_test ,y_train ,y_test ,process_path ,ohe,Le,oe,trf,models_path)
 
         logging.info("Processing completed : ")
     except Exception as e : 

@@ -5,8 +5,8 @@ stages:
     deps:
     - path: params.yaml
       hash: md5
-      md5: 7a325ac13bf91cb757ee4d7937ea4961
-      size: 504
+      md5: 947613c26acb46f5cfc873b264b98a16
+      size: 628
     - path: src/data/make_dataset.py
       hash: md5
       md5: f34c2d92c3916d8fc25ee4d11c51b820
@@ -27,48 +27,56 @@ stages:
       nfiles: 1
     - path: params.yaml
       hash: md5
-      md5: 7a325ac13bf91cb757ee4d7937ea4961
-      size: 504
+      md5: 947613c26acb46f5cfc873b264b98a16
+      size: 628
     - path: src/features/build_features.py
       hash: md5
-      md5: 8dfab6a9d60ab234434f583cef34eb5a
-      size: 7151
+      md5: b2f22088d3112cff67bff3ea0f1c89d9
+      size: 8060
     outs:
     - path: data/processed
       hash: md5
-      md5: 5147a0d91ce7e29ad9813edb703a4af4.dir
-      size: 18453834
+      md5: 6df9693127624e3d57bafce9a814415b.dir
+      size: 28934168
       nfiles: 4
     - path: models/le_pkl.pkl
       hash: md5
       md5: bca374bf5b44ac8310c83baf755db019
       size: 268
-    - path: models/te.pkl
+    - path: models/oe.pkl
       hash: md5
-      md5: 58cf0e453f7a47cb1f4212ff6dac340a
-      size: 24663
+      md5: ae64d84407bff978fc4fbd7369eb7b88
+      size: 5712
+    - path: models/ohe.pkl
+      hash: md5
+      md5: b2448779b61b0c1d57c9bb59b3f11a8e
+      size: 1236
+    - path: models/trf.pkl
+      hash: md5
+      md5: ed86defa682edf98137458a13ed465b1
+      size: 983
   model:
     cmd: python src/models/train_model.py
     deps:
     - path: data/processed
       hash: md5
-      md5: 5147a0d91ce7e29ad9813edb703a4af4.dir
-      size: 18453834
+      md5: 6df9693127624e3d57bafce9a814415b.dir
+      size: 28934168
       nfiles: 4
     - path: params.yaml
       hash: md5
-      md5: 9b88aa1c32a4961968fa119ba3dcd5b5
-      size: 370
+      md5: 947613c26acb46f5cfc873b264b98a16
+      size: 628
     - path: src/models/train_model.py
       hash: md5
-      md5: e87a809c98e3d41607bf50125ee1e5e8
-      size: 7884
+      md5: f017ae3becada91b9156f9cfbba93967
+      size: 8002
     outs:
     - path: models/model.pkl
       hash: md5
-      md5: 6c5dee40831cace13e9164dc3f87c02a
-      size: 2202794
+      md5: 7ce0cd89fdb3c711b5e8fb2984f351ec
+      size: 3115485
     - path: reports/metrics.json
       hash: md5
-      md5: e7f9a428f8362763b257326051ef1832
-      size: 149
+      md5: 2b80e4b23a827fcd41f7f2756ae30647
+      size: 150

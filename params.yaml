@@ -6,17 +6,20 @@ build_feature:
   random_state: 42
 
 smote: 
-    sampling_strategy : 'auto'
-    k_neighbors : 5 
+    sampling_strategy : 0.6865131419632106
+    k_neighbors : 7
 
 cat_model: 
-    iterations: 1000
-    learning_rate: 0.05
-    depth: 6
-    l2_leaf_reg: 3
-    loss_function: Logloss
-    eval_metric: Recall
-    random_seed: 42
-    verbose: 100
-    early_stopping_rounds: 50
-    auto_class_weights: Balanced
+      iterations: 1850
+      learning_rate: 0.010266931697102596
+      depth: 4
+      l2_leaf_reg: 6.667503854032206
+      bagging_temperature: 4.24324836179167
+      border_count: 107
+      class_weights:
+        - 1
+        - 2.567907725003371
+      verbose: 100
+      loss_function: Logloss
+      eval_metric: F1
+      random_seed: 42
