@@ -23,8 +23,8 @@ stages:
       nfiles: 1
     - path: params.yaml
       hash: md5
-      md5: 2bd67e533d91217b32014236a4752665
-      size: 366
+      md5: 9b88aa1c32a4961968fa119ba3dcd5b5
+      size: 370
     - path: src/features/build_features.py
       hash: md5
       md5: 77666c033b50b3d72cc5132ab19a2f52

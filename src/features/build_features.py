@@ -4,6 +4,7 @@ from pathlib import Path
 import logging
 from sklearn.model_selection import train_test_split 
 from sklearn.preprocessing import OneHotEncoder ,LabelEncoder
+from category_encoders import TargetEncoder
 import pickle
 
 logging.basicConfig(

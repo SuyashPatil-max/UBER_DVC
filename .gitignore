@@ -95,3 +95,6 @@ target/
 models/model.pkl
 models/le.pkl
 models/ohe.pkl
+
+.dvc/cache
+.dvc/temp

@@ -1,0 +1,4 @@
+[core]
+    remote = local-temp
+['remote "local-temp"']
+    url = C:\Users\dell\AppData\Local\Temp
