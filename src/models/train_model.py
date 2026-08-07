@@ -175,7 +175,9 @@ def ml(model, metrics, params, train_data, test_data ,params_path ,cm_path, X_tr
             sig = infer_signature(X_train ,model.predict(X_test))
             model_info = mlflow.sklearn.log_model(model ,
                                                   "cat_smote_model",
-                                                  signature = sig )
+                                                  signature = sig,
+                                                serialization_format="pickle"
+                                                )
 
             with open(reports_path/"experiment.json" , 'w') as f : 
                 json.dump(
