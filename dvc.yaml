@@ -25,6 +25,8 @@ stages:
     - src/models/train_model.py
     outs:
     - models/model.pkl
+    - models/le.pkl
+    - models/ohe.pkl
     metrics:
     - reports/metrics.json:
         cache: false
