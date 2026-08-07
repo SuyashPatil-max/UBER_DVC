@@ -17,3 +17,14 @@ stages:
     - data/processed
 
 
+  model:
+    cmd: python src/models/train_model.py
+    deps:
+    - data/processed
+    - params.yaml
+    - src/models/train_model.py
+    outs:
+    - models/model.pkl
+    metrics:
+    - reports/metrics.json:
+        cache: false
