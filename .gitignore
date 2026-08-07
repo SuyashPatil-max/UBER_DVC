@@ -94,6 +94,8 @@ target/
 # my not tracking files 
 models/model.pkl
 models/le.pkl
+models/le_pkl.pkl
+models/te.pkl
 models/ohe.pkl
 
 .dvc/cache

@@ -15,6 +15,8 @@ stages:
     - src/features/build_features.py
     outs:
     - data/processed
+    - models/le_pkl.pkl
+    - models/te.pkl
 
 
   model:
@@ -25,8 +27,6 @@ stages:
     - src/models/train_model.py
     outs:
     - models/model.pkl
-    - models/le.pkl
-    - models/ohe.pkl
     metrics:
     - reports/metrics.json:
         cache: false

@@ -128,35 +128,30 @@ def date_time_features(df):
         raise
 
 
-def category_encoder(df) : 
-    try :
-        logging.info("Category ecnoding starting with ohe: ")
-        cat_cols = df.select_dtypes(include =['object']).columns.tolist()
-        if "Booking Status" in cat_cols : 
+def category_encoder(df):
+    try:
+        logging.info("Category encoding starting with Target Encoder:")
+
+        cat_cols = df.select_dtypes(include=['object']).columns.tolist()
+        if "Booking Status" in cat_cols:
             cat_cols.remove("Booking Status")
 
         logging.info(f"Cat cols are {cat_cols}")
+        te = TargetEncoder(cols=cat_cols)
 
-        ohe = OneHotEncoder(sparse_output = False ,handle_unknown = 'ignore')
-        df_cat = ohe.fit_transform(df[cat_cols])
-        df = df.drop(cat_cols , axis = 1 )
-        new_cat_cols = ohe.get_feature_names_out()
-        logging.info(f"new Cat cols are {new_cat_cols}")
+        df[cat_cols] = te.fit_transform(df[cat_cols], df["Booking Status"])
+        logging.info("Category encoding finished")
+        logging.info("Starting label encoding")
 
-        df_cat = pd.DataFrame(df_cat , columns =new_cat_cols ,index = df.index)
-        df = pd.concat([df ,df_cat], axis =1 )
-        logging.info("Category encoding finished ")
-
-        logging.info("Starting label encoding ")
         le = LabelEncoder()
-        df["Booking Status"] = le.fit_transform(df['Booking Status'])
-        logging.info("Label encoding finished ")
+        df["Booking Status"] = le.fit_transform(df["Booking Status"])
+        logging.info("Label encoding finished")
 
-        return df ,ohe , le
+        return df, te, le
 
-    except Exception as e : 
-        logging.error("Error in category encoders : ")
-        raise e 
+    except Exception as e:
+        logging.error(f"Error in category encoding: {e}")
+        raise e
 
 def split_data(params, df) -> pd.DataFrame : 
     try : 
@@ -174,7 +169,7 @@ def split_data(params, df) -> pd.DataFrame :
         raise e 
 
 
-def save_data(X_train ,X_test ,y_train ,y_test , processed_path ,ohe ,le , models_path) : 
+def save_data(X_train ,X_test ,y_train ,y_test , processed_path ,te ,le_pkl , models_path) : 
     try : 
         logging.info("Saving the data started...")
         X_train_path = processed_path/"X_train.csv"
@@ -188,10 +183,10 @@ def save_data(X_train ,X_test ,y_train ,y_test , processed_path ,ohe ,le , model
         y_test.to_csv(y_test_path , index = False )
 
         logging.info("Loading ohe and le ") 
-        with open(models_path/"ohe.pkl" , 'wb') as f : 
-            pickle.dump(ohe ,f)
-        with open(models_path/"le.pkl" , 'wb') as f : 
-            pickle.dump(le ,f)
+        with open(models_path/"te.pkl" , 'wb') as f : 
+            pickle.dump(te ,f)
+        with open(models_path/"le_pkl.pkl" , 'wb') as f : 
+            pickle.dump(le_pkl ,f)
 
     except Exception as e : 
         logging.error(f"Saving data failed due to : {e}")
@@ -212,10 +207,10 @@ def main() :
         df = load_data(raw_path)
 
         df = date_time_features(df)
-        df,ohe,Le= category_encoder(df)
+        df,te,Le= category_encoder(df)
         logging.info(f"data is {df.columns}")
         X_train ,X_test ,y_train, y_test = split_data(params , df )
-        save_data(X_train ,X_test ,y_train ,y_test ,process_path ,ohe,Le,models_path)
+        save_data(X_train ,X_test ,y_train ,y_test ,process_path ,te,Le,models_path)
 
         logging.info("Processing completed : ")
     except Exception as e : 
