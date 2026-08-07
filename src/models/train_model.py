@@ -29,7 +29,7 @@ logging.info("Setting mlflow and dagshub : ")
 token = os.getenv("DAGSHUB_TOKEN")
 if token:
     dagshub.auth.add_app_token(token)
-    
+
 mlflow.set_tracking_uri("https://dagshub.com/SuyashPatil-max/UBER_DVC.mlflow")
 dagshub.init(
     repo_owner = 'SuyashPatil-max' , 
@@ -173,8 +173,8 @@ def ml(model, metrics, params, train_data, test_data ,params_path ,cm_path, X_tr
             mlflow.log_artifact(cm_path)
 
             sig = infer_signature(X_train ,model.predict(X_test))
-            model_info = mlflow.sklearn.log_model(sk_model = model ,
-                                                  artifact_path="model",
+            model_info = mlflow.sklearn.log_model(model ,
+                                                  "cat_smote_model",
                                                   signature = sig )
 
             with open(reports_path/"experiment.json" , 'w') as f : 
