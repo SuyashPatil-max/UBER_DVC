@@ -17,7 +17,7 @@ stages:
     outs:
     - data/processed
     - models/le_pkl.pkl
-    - models/ohe.pkl
+    # - models/ohe.pkl
     - models/oe.pkl
     - models/trf.pkl
 

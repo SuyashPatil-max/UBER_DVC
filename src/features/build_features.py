@@ -131,23 +131,25 @@ def category_encoder(df):
         logging.info("Category encoding starting ")
 
         cate_cols = ['Vehicle Type', 'Payment Method',
-                        'TimeOfDay','Season','Quarter','IsWeekend','DayOfWeek']
+                        'TimeOfDay','Season','Quarter','IsWeekend','DayOfWeek','Pickup Location','Drop Location']
         num_cate_cols = ['Pickup Location','Drop Location']
 
         ohe = OneHotEncoder(sparse_output = False ,handle_unknown='ignore')
         oe = OrdinalEncoder(handle_unknown='use_encoded_value',unknown_value=-1)
         le = LabelEncoder()
+        le_features = LabelEncoder()
 
-        df[num_cate_cols] = oe.fit_transform(df[num_cate_cols])
+        df[cate_cols] = oe.fit_transform(df[cate_cols])
         df['Booking Status'] = le.fit_transform(df['Booking Status'])
-        cate = ohe.fit_transform(df[cate_cols])
+        # cate = ohe.fit_transform(df[cate_cols])
 
-        cate = pd.DataFrame(cate ,columns=ohe.get_feature_names_out(),index = df.index)
-        df = df.drop(cate_cols ,axis =1 )
-        df = pd.concat([df , cate] ,axis =1 )
+        # cate = pd.DataFrame(cate ,columns=ohe.get_feature_names_out(),index = df.index)
+        # cate = pd.DataFrame(cate , columns = cate_cols , index = df.index)
+        # df = df.drop(cate_cols ,axis =1 )
+        # df = pd.concat([df , cate] ,axis =1 )
         logging.info("Caegory encoder done")
 
-        return df ,ohe ,le ,oe
+        return df ,oe,le 
     
     except Exception as e:
         logging.error(f"Error in category encoding: {e}")
@@ -187,7 +189,7 @@ def split_data(params, df) -> pd.DataFrame :
         raise e 
 
 
-def save_data(X_train ,X_test ,y_train ,y_test , processed_path ,ohe ,le_pkl ,oe, trf,models_path ) : 
+def save_data(X_train ,X_test ,y_train ,y_test , processed_path ,le_pkl ,oe, trf,models_path ) : 
     try : 
         logging.info("Saving the data started...")
         X_train_path = processed_path/"X_train.csv"
@@ -202,8 +204,8 @@ def save_data(X_train ,X_test ,y_train ,y_test , processed_path ,ohe ,le_pkl ,oe
 
         logging.info("Loading ohe and le ") 
         
-        with open(models_path/"ohe.pkl" , 'wb') as f : 
-            pickle.dump(ohe ,f)
+        # with open(models_path/"ohe.pkl" , 'wb') as f : 
+        #     pickle.dump(ohe ,f)
         with open(models_path/"trf.pkl" , 'wb') as f : 
                     pickle.dump(trf ,f)
         with open(models_path/"oe.pkl" , 'wb') as f : 
@@ -232,10 +234,10 @@ def main() :
         df = date_time_features(df)
 
         df,trf = preprocessing_nums(df)
-        df,ohe,Le,oe= category_encoder(df)
+        df,Le,oe= category_encoder(df)
         logging.info(f"data is {df.columns}")
         X_train ,X_test ,y_train, y_test = split_data(params , df )
-        save_data(X_train ,X_test ,y_train ,y_test ,process_path ,ohe,Le,oe,trf,models_path)
+        save_data(X_train ,X_test ,y_train ,y_test ,process_path,Le,oe,trf,models_path)
 
         logging.info("Processing completed : ")
     except Exception as e : 
