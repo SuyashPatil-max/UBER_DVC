@@ -170,7 +170,11 @@ def ml(model, metrics, params, train_data, test_data ,params_path ,cm_path, X_tr
             for k, v in params["smote"].items()
                 }
 
+<<<<<<< HEAD
         with mlflow.start_run(run_name = 'cat + smoth' ,description="no category encoding") as run : 
+=======
+        with mlflow.start_run(run_name = 'cat model with smote',description="only ordinal encoding") as run : 
+>>>>>>> bff5904 (final model trained)
             mlflow.log_metrics(metrics)
             mlflow.log_params(cat_params)
             mlflow.log_params(smote_params)
