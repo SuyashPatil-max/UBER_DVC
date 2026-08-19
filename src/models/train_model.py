@@ -94,28 +94,19 @@ def load_params(params_path) :
 
 def train_models(X_train ,y_train ,params) : 
     try : 
-        logging.info("Converting cat features into cat indexes")
-
-        categorical_cols = params['categorical_features']['cat_features']
-
-        categorical_indices = [
-        X_train.columns.get_loc(col)
-        for col in categorical_cols ]
 
         logging.info("Setting pipeline : ")
-
-
 
         cat_params = params['cat_model']
         smote_params = params['smote']
 
         model = Pipeline([
-            ('smote', SMOTENC(**smote_params ,categorical_features=categorical_indices)),
+            ('smote', SMOTE(**smote_params)),
             ('catboost', cat.CatBoostClassifier(**cat_params))
         ])
 
         logging.info("Training started : ")
-        model.fit(X_train,y_train,catboost__cat_features =categorical_indices )
+        model.fit(X_train,y_train )
         logging.info("Training completed")
 
         return model
@@ -169,12 +160,7 @@ def ml(model, metrics, params, train_data, test_data ,params_path ,cm_path, X_tr
             f"smote_{k}": v
             for k, v in params["smote"].items()
                 }
-
-<<<<<<< HEAD
-        with mlflow.start_run(run_name = 'cat + smoth' ,description="no category encoding") as run : 
-=======
         with mlflow.start_run(run_name = 'cat model with smote',description="only ordinal encoding") as run : 
->>>>>>> bff5904 (final model trained)
             mlflow.log_metrics(metrics)
             mlflow.log_params(cat_params)
             mlflow.log_params(smote_params)

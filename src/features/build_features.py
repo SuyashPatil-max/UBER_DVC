@@ -138,6 +138,7 @@ def category_encoder(df):
         le = LabelEncoder()
 
         df[cate_cols] = oe.fit_transform(df[cate_cols])
+        logging.info(f"Classes of oe are : {oe.categories_}")
         df['Booking Status'] = le.fit_transform(df['Booking Status'])
         logging.info("Caegory encoder done")
 
