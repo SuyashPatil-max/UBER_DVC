@@ -11,7 +11,7 @@ from imblearn.pipeline import Pipeline
 import json
 import mlflow 
 import mlflow.sklearn
-from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SMOTE,SMOTENC
 from mlflow.models.signature import infer_signature
 import catboost as cat 
 import dagshub
@@ -94,17 +94,28 @@ def load_params(params_path) :
 
 def train_models(X_train ,y_train ,params) : 
     try : 
+        logging.info("Converting cat features into cat indexes")
+
+        categorical_cols = params['categorical_features']['cat_features']
+
+        categorical_indices = [
+        X_train.columns.get_loc(col)
+        for col in categorical_cols ]
+
         logging.info("Setting pipeline : ")
+
+
 
         cat_params = params['cat_model']
         smote_params = params['smote']
+
         model = Pipeline([
-            ('smote', SMOTE(**smote_params)),
+            ('smote', SMOTENC(**smote_params ,categorical_features=categorical_indices)),
             ('catboost', cat.CatBoostClassifier(**cat_params))
         ])
 
         logging.info("Training started : ")
-        model.fit(X_train,y_train)
+        model.fit(X_train,y_train,catboost__cat_features =categorical_indices )
         logging.info("Training completed")
 
         return model
@@ -159,7 +170,7 @@ def ml(model, metrics, params, train_data, test_data ,params_path ,cm_path, X_tr
             for k, v in params["smote"].items()
                 }
 
-        with mlflow.start_run(run_name = 'cat model with smote with ordinal encoder') as run : 
+        with mlflow.start_run(run_name = 'cat + smoth' ,description="no category encoding") as run : 
             mlflow.log_metrics(metrics)
             mlflow.log_params(cat_params)
             mlflow.log_params(smote_params)

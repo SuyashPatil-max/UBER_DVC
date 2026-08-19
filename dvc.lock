@@ -5,8 +5,8 @@ stages:
     deps:
     - path: params.yaml
       hash: md5
-      md5: 947613c26acb46f5cfc873b264b98a16
-      size: 628
+      md5: 58aede9380b8339e232ef726183a9323
+      size: 824
     - path: src/data/make_dataset.py
       hash: md5
       md5: f34c2d92c3916d8fc25ee4d11c51b820
@@ -27,23 +27,19 @@ stages:
       nfiles: 1
     - path: params.yaml
       hash: md5
-      md5: 947613c26acb46f5cfc873b264b98a16
-      size: 628
+      md5: 58aede9380b8339e232ef726183a9323
+      size: 824
     - path: src/features/build_features.py
       hash: md5
-      md5: ce07318f26894bdad7c3b8b4da910594
-      size: 8195
+      md5: f70deeef40d3c1f4d5d101475e41b766
+      size: 8188
     outs:
     - path: data/processed
       hash: md5
-      md5: f9f53018a31709744d980abad94ab233.dir
-      size: 18325132
+      md5: 4e8a2cd1d49f567e32d84a302bf87ced.dir
+      size: 21290015
       nfiles: 4
     - path: models/le_pkl.pkl
-      hash: md5
-      md5: df5b67732881dc4961eb038024222115
-      size: 6393
-    - path: models/oe.pkl
       hash: md5
       md5: bca374bf5b44ac8310c83baf755db019
       size: 268
@@ -56,23 +52,23 @@ stages:
     deps:
     - path: data/processed
       hash: md5
-      md5: f9f53018a31709744d980abad94ab233.dir
-      size: 18325132
+      md5: 4e8a2cd1d49f567e32d84a302bf87ced.dir
+      size: 21290015
       nfiles: 4
     - path: params.yaml
       hash: md5
-      md5: 947613c26acb46f5cfc873b264b98a16
-      size: 628
+      md5: 58aede9380b8339e232ef726183a9323
+      size: 824
     - path: src/models/train_model.py
       hash: md5
-      md5: b3af3a13328c57645acd2bae7f4d3825
-      size: 8022
+      md5: ba1d60dbd0ac37840b233ab0d9fc0650
+      size: 8388
     outs:
     - path: models/model.pkl
       hash: md5
-      md5: a132c756fb472330f06c08fc5001382b
-      size: 1596069
+      md5: 922b65bc77c5abdaa989eee161fa9f25
+      size: 48169157
     - path: reports/metrics.json
       hash: md5
-      md5: c494b7d0a915d6ac1d9c03113c681e42
+      md5: b2aeaed61067e1754b14aa7fdc929b72
       size: 151

@@ -23,3 +23,8 @@ cat_model:
       loss_function: Logloss
       eval_metric: F1
       random_seed: 42
+
+
+categorical_features:
+    cat_features: ['Vehicle Type', 'Payment Method',
+                        'TimeOfDay','Season','Quarter','IsWeekend','DayOfWeek','Pickup Location','Drop Location']
