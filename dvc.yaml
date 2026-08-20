@@ -33,3 +33,10 @@ stages:
     metrics:
     - reports/metrics.json:
         cache: false
+
+  model_registry:
+    cmd: python src/models/model_registry.py
+    deps:
+    - models/model.pkl
+    - reports/experiment.json
+    - src/models/model_registry.py
