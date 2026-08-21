@@ -1,0 +1,43 @@
+name: CI_CD_PIPELINE
+on: 
+    push:
+      branches:
+        - main
+
+
+jobs:
+    project_testing:  
+      runs-on: ubuntu-latest
+
+      steps:
+          - name: chekcout-code
+            uses: actions/checkout@v4
+
+          - name: setup-python
+            uses: actions/setup-python@v5
+            with:
+              python-version: "3.13"
+
+          - name: install-dependencies
+            run: |
+                pip install --upgrade pip 
+                pip install -r requirements.txt
+                pip install pytest 
+                pip install dvc[s3]
+          
+          - name: s3_config
+            uses: aws-actions/aws-congigure-credentials@v4
+            with:   
+                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                aws-region: ap-south-1
+
+          - name: pull-data from s3 
+            run: | 
+                dvc pull data/.
+
+          - name: dvc-pipeline
+            run: | 
+                dvc repro
+
+
