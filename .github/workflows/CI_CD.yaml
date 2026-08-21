@@ -34,7 +34,7 @@ jobs:
 
           - name: pull-data from s3 
             run: | 
-                dvc pull data/.
+                dvc pull 
 
           - name: dvc-pipeline
             run: | 
