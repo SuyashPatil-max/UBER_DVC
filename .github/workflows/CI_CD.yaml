@@ -35,6 +35,13 @@ jobs:
           - name: pull-data from s3 
             run: | 
                 dvc pull 
+          
+          - name: dagshub-auth
+            env:
+              DAGSHUB_USER: ${{ secrets.DAGSHUB_USER }}
+              DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+            run: |
+              dagshub login --token $DAGSHUB_TOKEN
 
           - name: dvc-pipeline
             run: | 
