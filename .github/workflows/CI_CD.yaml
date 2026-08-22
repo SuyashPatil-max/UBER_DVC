@@ -230,6 +230,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
+      - name: pull-data-from-s3
+        run: |
+          dvc pull
+
       - name: s3_config
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -237,9 +241,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
-      - name: pull-data-from-s3
-        run: |
-          dvc pull
 
       - name: ecr-login
         run: |
