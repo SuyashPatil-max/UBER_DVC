@@ -273,6 +273,7 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: build-frontend-image
+        working-directory: frontend
         run: |
           docker build -t uber-frontend:latest .
 
