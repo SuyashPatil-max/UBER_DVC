@@ -41,12 +41,8 @@ def home_page():
 
 @app.get('/health')
 def health_page():
-    version = load_model_version()
-    model ,oe ,trf, le = load_models()
     return { 
-        "result" : "ok" , 
-        "model_version" : version,
-        "model_loaded" : model is not None
+        "result" : "ok"
 
     }
 

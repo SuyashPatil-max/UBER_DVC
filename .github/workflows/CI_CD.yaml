@@ -112,6 +112,18 @@ jobs:
         with:
           python-version: "3.13"
 
+
+      - name: s3_config
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: pull-data-from-s3
+        run: |
+          dvc pull
+
       - name: build-docker-image
         run: |
           docker build -t uber_image:latest .
@@ -144,6 +156,17 @@ jobs:
       - name: build-docker-image
         run: |
           docker build -t uber_image:latest .
+      
+      - name: s3_config
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: pull-data-from-s3
+        run: |
+          dvc pull
 
       - name: tag-image
         run: |
@@ -174,6 +197,17 @@ jobs:
           aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
+
+      - name: s3_config
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: pull-data-from-s3
+        run: |
+          dvc pull
 
       - name: ecr-login
         run: |
