@@ -111,6 +111,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+      
+
+      - name: install-dependencies
+        run: | 
+            pip install --upgrade pip
+            pip install dvc
+            pip install dvc[s3]
 
 
       - name: s3_config
@@ -120,13 +127,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
+
       - name: pull-data-from-s3
         run: |
           dvc pull
 
+
       - name: build-docker-image
         run: |
           docker build -t uber_image:latest .
+
 
       - name: run-docker-container
         run: |
