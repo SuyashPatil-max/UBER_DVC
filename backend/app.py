@@ -78,3 +78,12 @@ def predict_ride(data : Ride_IN) :
     output = predict_output(input_data)
     return output 
 
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8002,
+    )
