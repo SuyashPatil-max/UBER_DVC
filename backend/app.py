@@ -1,34 +1,61 @@
 from fastapi import FastAPI ,HTTPException
 from fastapi.responses import JSONResponse 
-from .schema import prediction_input
-from .schema import prediction_output 
-from .preprocessing import Date_time
+from .schema.valid_in import Ride_IN
+# from .schema.valid_out import prediction_output 
+from .preprocessing import cols
+from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path as pt 
+import pandas as pd 
+import pickle
+import json
 
 
-path = pt(__file__).resolve().parents[1]
-def paths() : 
-    models_path = path/"models"
-    le_path = models_path/"le.pkl"
-    model_path =models_path/"model.pkl"
-    ohe_path = models_path/"ohe.pkl"
-    trf_path = models_path/"trf.pkl"
 
-    return {
-        "model" : model_path,
-        "trf" : trf_path,
-        "ohe" : ohe_path, 
-        "le" : le_path
-    }
+
+    
+def load_model_version() : 
+    paths = pt(__file__).resolve().parents[1]/"reports"/"model_version.json"
+    with open(paths , 'r') as f : 
+        version = json.load(f)
+
+    return version
 
 
 def load_models():
-    pass
+    try : 
 
+        paths = pt(__file__).resolve().parents[1]/"models"
+        with open(paths/"model.pkl", 'rb') as f : 
+            model = pickle.load(f)
+
+        with open(paths/"oe.pkl", 'rb') as f : 
+            oe = pickle.load(f)
+
+        with open(paths/"trf.pkl", 'rb') as f : 
+            trf = pickle.load(f)
+
+        with open(paths/"le_pkl.pkl", 'rb') as f : 
+            le = pickle.load(f)
+
+        return model , oe ,trf ,le 
+
+    except Exception as e : 
+        raise e 
+         
 
 
 app = FastAPI(
     title = "Uber ride prediction API"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+       "http://localhost:5173"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.get('/')
@@ -40,6 +67,54 @@ def home_page():
 
 @app.get('/health')
 def health_page():
+    version = load_model_version()
+    model ,oe ,trf, le = load_models()
     return { 
-        "result" : "ok"
+        "result" : "ok" , 
+        "model_version" : version,
+        "model_loaded" : model is not None
+
     }
+
+
+@app.post('/predict')
+def predict_ride(data : Ride_IN) : 
+    input_data = {
+    "Vehicle Type": data.vehicle_type.value,
+    "Pickup Location": data.pickup_location.value,
+    "Drop Location": data.drop_location.value,
+
+    "Avg VTAT": data.vtat,
+    "Avg CTAT": data.ctat,
+    "Booking Value": data.Booking_value,
+    "Ride Distance": data.Ride_Distance,
+
+    "Payment Method": data.payment_method.value,
+
+    "Month": data.Month,
+    "Day": data.Day,
+    "DayOfWeek": data.DayOfWeek,
+    "Quarter": data.Quarter,
+    "IsWeekend": data.IsWeekend,
+    "Hour": data.Hour,
+    "TimeOfDay": data.TimeOfDay,
+    "Season": data.Season
+    }
+
+    model ,oe ,trf ,le  = load_models()
+
+    cate_cols ,nums_cols = cols()
+    input_df = pd.DataFrame([input_data])
+    input_df[nums_cols] = trf.transform(input_df[nums_cols])
+    input_df[cate_cols] = oe.transform(input_df[cate_cols])
+
+    pred = model.predict(input_df)
+    prob = model.predict_proba(input_df)
+
+    prediction_label = le.inverse_transform(pred)
+
+    return {
+        "prediction": prediction_label[0],
+        "probability": float(prob[0].max())
+    }
+

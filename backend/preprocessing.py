@@ -55,3 +55,15 @@ def date_time_features(df):
     except Exception as e:
         logging.error(f"Date-Time feature engineering failed due to: {e}")
         raise
+
+
+
+def cols() : 
+    cate_cols = ['Vehicle Type', 'Payment Method',
+                        'TimeOfDay','Season','Quarter','IsWeekend','DayOfWeek','Pickup Location','Drop Location']
+
+    nums_cols =  ['Avg VTAT', 'Avg CTAT', 'Booking Value', 'Ride Distance', 'Month',
+           'Day', 'Hour']
+
+    
+    return cate_cols , nums_cols 

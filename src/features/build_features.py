@@ -142,7 +142,7 @@ def category_encoder(df):
         df['Booking Status'] = le.fit_transform(df['Booking Status'])
         logging.info("Caegory encoder done")
 
-        return df ,le 
+        return df ,le , oe 
     
     except Exception as e:
         logging.error(f"Error in category encoding: {e}")
@@ -182,7 +182,7 @@ def split_data(params, df) -> pd.DataFrame :
         raise e 
 
 
-def save_data(X_train ,X_test ,y_train ,y_test , processed_path ,le_pkl, trf,models_path ) : 
+def save_data(X_train ,X_test ,y_train ,y_test , processed_path ,le_pkl ,oe, trf,models_path ) : 
     try : 
         logging.info("Saving the data started...")
         X_train_path = processed_path/"X_train.csv"
@@ -196,13 +196,11 @@ def save_data(X_train ,X_test ,y_train ,y_test , processed_path ,le_pkl, trf,mod
         y_test.to_csv(y_test_path , index = False )
 
         logging.info("Loading ohe and le ") 
-        
-        # with open(models_path/"ohe.pkl" , 'wb') as f : 
-        #     pickle.dump(ohe ,f)
+
         with open(models_path/"trf.pkl" , 'wb') as f : 
                     pickle.dump(trf ,f)
-        # with open(models_path/"oe.pkl" , 'wb') as f : 
-        #             pickle.dump(oe ,f)
+        with open(models_path/"oe.pkl" , 'wb') as f : 
+                    pickle.dump(oe ,f)
         with open(models_path/"le_pkl.pkl" , 'wb') as f : 
             pickle.dump(le_pkl ,f)
 
@@ -227,10 +225,10 @@ def main() :
         df = date_time_features(df)
 
         df,trf = preprocessing_nums(df)
-        df,Le= category_encoder(df)
+        df,Le, oe = category_encoder(df)
         logging.info(f"data is {df.columns}")
         X_train ,X_test ,y_train, y_test = split_data(params , df )
-        save_data(X_train ,X_test ,y_train ,y_test ,process_path,Le,trf,models_path)
+        save_data(X_train ,X_test ,y_train ,y_test ,process_path,Le, oe,trf,models_path)
 
         logging.info("Processing completed : ")
     except Exception as e : 

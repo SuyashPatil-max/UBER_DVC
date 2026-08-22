@@ -1,13 +1,15 @@
 import json
 import os
 import logging
-
+from pathlib import Path
 import dagshub
 import mlflow
 from dotenv import load_dotenv
 from mlflow import MlflowClient
 
 load_dotenv()
+path = Path(__file__).resolve().parents[2] /"reports"/"model_version.json"
+
 
 token = os.getenv("DAGSHUB_TOKEN")
 
@@ -56,9 +58,18 @@ def register_model():
     return registered_model.version
 
 
+def save_model_version(version) :
+    with open(path , 'w') as f :
+        json.dump(version ,f ,indent =4 )
+
+    logging.info("Saved model version")
+
+
 def main():
     version = register_model()
     print(f"Registered Version : {version}")
+    save_model_version(version)
+
 
 
 if __name__ == "__main__":
