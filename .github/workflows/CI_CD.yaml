@@ -234,7 +234,7 @@ jobs:
         run: |
           dvc pull
 
-      - name: s3_config
+      - name: aws_config
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
@@ -254,3 +254,50 @@ jobs:
       - name: push-to-ecr
         run: |
           docker push 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
+  
+
+      - name: build-frontend-image
+        run: |
+          docker build -t uber-frontend:latest .
+
+
+      - name: docker-login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: tag-for-dockerhub
+        run: |
+          docker tag uber-frontend:latest suyash0p/uber-frontend:latest
+
+      - name: push-to-dockerhub
+        run: |
+          docker push suyash0p/uber-frontend:latest
+          
+
+      - name: aws-config
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: ecr-login
+        run: |
+          aws ecr get-login-password --region ap-south-1 | \
+          docker login --username AWS --password-stdin \
+          577267183471.dkr.ecr.ap-south-1.amazonaws.com
+
+      - name: tag-for-ecr
+        run: |
+          docker tag uber-frontend:latest \
+          577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
+
+      - name: push-to-ecr
+        run: |
+          docker push \
+          577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
+
+
+      
