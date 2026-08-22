@@ -1,7 +1,7 @@
 from fastapi import FastAPI ,HTTPException
 from fastapi.responses import JSONResponse 
 from .schema.valid_in import Ride_IN
-from .predict import predict_output
+from .predict import predict_output ,load_models
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path as pt 
 import pandas as pd 
