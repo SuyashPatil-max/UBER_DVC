@@ -1,16 +1,12 @@
 from fastapi import FastAPI ,HTTPException
 from fastapi.responses import JSONResponse 
 from .schema.valid_in import Ride_IN
-# from .schema.valid_out import prediction_output 
-from .preprocessing import cols
+from .predict import predict_output
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path as pt 
 import pandas as pd 
 import pickle
 import json
-
-
-
 
     
 def load_model_version() : 
@@ -19,29 +15,6 @@ def load_model_version() :
         version = json.load(f)
 
     return version
-
-
-def load_models():
-    try : 
-
-        paths = pt(__file__).resolve().parents[1]/"models"
-        with open(paths/"model.pkl", 'rb') as f : 
-            model = pickle.load(f)
-
-        with open(paths/"oe.pkl", 'rb') as f : 
-            oe = pickle.load(f)
-
-        with open(paths/"trf.pkl", 'rb') as f : 
-            trf = pickle.load(f)
-
-        with open(paths/"le_pkl.pkl", 'rb') as f : 
-            le = pickle.load(f)
-
-        return model , oe ,trf ,le 
-
-    except Exception as e : 
-        raise e 
-         
 
 
 app = FastAPI(
@@ -57,6 +30,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get('/')
 def home_page():
@@ -101,20 +75,6 @@ def predict_ride(data : Ride_IN) :
     "Season": data.Season
     }
 
-    model ,oe ,trf ,le  = load_models()
-
-    cate_cols ,nums_cols = cols()
-    input_df = pd.DataFrame([input_data])
-    input_df[nums_cols] = trf.transform(input_df[nums_cols])
-    input_df[cate_cols] = oe.transform(input_df[cate_cols])
-
-    pred = model.predict(input_df)
-    prob = model.predict_proba(input_df)
-
-    prediction_label = le.inverse_transform(pred)
-
-    return {
-        "prediction": prediction_label[0],
-        "probability": float(prob[0].max())
-    }
+    output = predict_output(input_data)
+    return output 
 
