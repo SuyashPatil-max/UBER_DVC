@@ -155,54 +155,54 @@ jobs:
           docker rmi uber_image:latest || true
 
 
-  docker-hub:
-    needs: docker-image
-    runs-on: ubuntu-latest
+  # docker-hub:
+  #   needs: docker-image
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: code-checkout
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: code-checkout
+  #       uses: actions/checkout@v4
       
 
-      - name: install-dependencies
-        run: | 
-            pip install --upgrade pip
-            pip install dvc
-            pip install dvc[s3]
+  #     - name: install-dependencies
+  #       run: | 
+  #           pip install --upgrade pip
+  #           pip install dvc
+  #           pip install dvc[s3]
       
-      - name: s3_config
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+  #     - name: s3_config
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ap-south-1
 
 
-      - name: pull-data-from-s3
-        run: |
-          dvc pull
+  #     - name: pull-data-from-s3
+  #       run: |
+  #         dvc pull
 
 
-      - name: build-docker-image
-        run: |
-          docker build -t uber_image:latest .
+  #     - name: build-docker-image
+  #       run: |
+  #         docker build -t uber_image:latest .
       
 
-      - name: tag-image
-        run: |
-          docker tag uber_image:latest suyash0p/uber_image:latest
+  #     - name: tag-image
+  #       run: |
+  #         docker tag uber_image:latest suyash0p/uber_image:latest
 
 
-      - name: docker-login
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+  #     - name: docker-login
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_TOKEN }}
 
 
-      - name: push-image
-        run: |
-          docker push suyash0p/uber_image:latest
+  #     - name: push-image
+  #       run: |
+  #         docker push suyash0p/uber_image:latest
 
 
 
@@ -278,19 +278,19 @@ jobs:
           docker build -t uber-frontend:latest .
 
 
-      - name: docker-login
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+      # - name: docker-login
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: tag-for-dockerhub
-        run: |
-          docker tag uber-frontend:latest suyash0p/uber-frontend:latest
+      # - name: tag-for-dockerhub
+      #   run: |
+      #     docker tag uber-frontend:latest suyash0p/uber-frontend:latest
 
-      - name: push-to-dockerhub
-        run: |
-          docker push suyash0p/uber-frontend:latest
+      # - name: push-to-dockerhub
+      #   run: |
+      #     docker push suyash0p/uber-frontend:latest
 
 
       - name: aws-config
