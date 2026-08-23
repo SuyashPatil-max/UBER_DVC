@@ -5,8 +5,8 @@ stages:
     deps:
     - path: params.yaml
       hash: md5
-      md5: 58aede9380b8339e232ef726183a9323
-      size: 824
+      md5: 2b2f368f58a7e02ea393954aab931516
+      size: 791
     - path: src/data/make_dataset.py
       hash: md5
       md5: f34c2d92c3916d8fc25ee4d11c51b820
@@ -27,8 +27,8 @@ stages:
       nfiles: 1
     - path: params.yaml
       hash: md5
-      md5: 58aede9380b8339e232ef726183a9323
-      size: 824
+      md5: 2b2f368f58a7e02ea393954aab931516
+      size: 791
     - path: src/features/build_features.py
       hash: md5
       md5: d8b8db25aaae65d691eea12a0ad879d8
@@ -61,31 +61,31 @@ stages:
       nfiles: 4
     - path: params.yaml
       hash: md5
-      md5: 58aede9380b8339e232ef726183a9323
-      size: 824
+      md5: 2b2f368f58a7e02ea393954aab931516
+      size: 791
     - path: src/models/train_model.py
       hash: md5
-      md5: 87e8a30f79b7e1d2a14adbe7809c2132
-      size: 8048
+      md5: cd3bbbf2301efd11a026f150c4f803f7
+      size: 8033
     outs:
     - path: models/model.pkl
       hash: md5
-      md5: 634c06be89e8db13fcadbae0a3b01ab5
-      size: 1595965
+      md5: b972af6e56a200e7a593b35fbbc7d6dc
+      size: 50296597
     - path: reports/metrics.json
       hash: md5
-      md5: 121364d88b50787f98f8f12a8b35469b
-      size: 150
+      md5: 06322913905906e0872415c6006cc8aa
+      size: 147
   model_registry:
     cmd: python src/models/model_registry.py
     deps:
     - path: models/model.pkl
       hash: md5
-      md5: 634c06be89e8db13fcadbae0a3b01ab5
-      size: 1595965
+      md5: b972af6e56a200e7a593b35fbbc7d6dc
+      size: 50296597
     - path: reports/experiment.json
       hash: md5
-      md5: e5a55eb2c8c829d88ec4cd2339e20fb5
+      md5: 68d69a7a319cc3fa7b37ce43e2c69ef7
       size: 105
     - path: src/models/model_registry.py
       hash: md5

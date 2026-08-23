@@ -1,28 +1,31 @@
-data_ingestion: 
-    url: 'https://raw.githubusercontent.com/SuyashPatil-max/uber_datasets/refs/heads/main/ncr_ride_bookings.csv'
+data_ingestion:
+  url: https://raw.githubusercontent.com/SuyashPatil-max/uber_datasets/refs/heads/main/ncr_ride_bookings.csv
+
 
 build_feature:
   test_size: 0.2
   random_state: 42
 
-smote: 
-    sampling_strategy : 0.6865131419632106
-    k_neighbors : 7
 
-cat_model: 
-      iterations: 1850
-      learning_rate: 0.010266931697102596
-      depth: 4
-      l2_leaf_reg: 6.667503854032206
-      bagging_temperature: 4.24324836179167
-      border_count: 107
-      class_weights:
-        - 1
-        - 2.567907725003371
-      verbose: 100
-      loss_function: Logloss
-      eval_metric: F1
-      random_seed: 42
+smote:
+  sampling_strategy: 0.542051105432863
+  k_neighbors: 10
+  random_state: 42
+
+cat_model:
+  iterations: 3000
+  learning_rate: 0.0011483157245435395
+  depth: 10
+  l2_leaf_reg: 1.120352825702718
+  bagging_temperature: 6.2358405482911206
+  border_count: 120
+  class_weights:
+    - 1
+    - 5.361684247757537
+  verbose: false
+  loss_function: Logloss
+  eval_metric: F1
+  random_seed: 42
 
 
 categorical_features:
