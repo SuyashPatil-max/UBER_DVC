@@ -43,6 +43,10 @@ stages:
       hash: md5
       md5: bca374bf5b44ac8310c83baf755db019
       size: 268
+    - path: models/oe.pkl
+      hash: md5
+      md5: df5b67732881dc4961eb038024222115
+      size: 6393
     - path: models/trf.pkl
       hash: md5
       md5: ed86defa682edf98137458a13ed465b1
@@ -85,5 +89,5 @@ stages:
       size: 105
     - path: src/models/model_registry.py
       hash: md5
-      md5: 41a9cdcd9977d29a359afb2999b26c1c
-      size: 1278
+      md5: 39afbf8c919cef2a72806bbeb29042d4
+      size: 1574
