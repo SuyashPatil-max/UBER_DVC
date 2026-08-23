@@ -49,22 +49,6 @@ jobs:
         run: |
           dvc repro
 
-      - name: verify-models
-        run: |
-          echo "Checking trained models..."
-          ls -lh models
-          test -f models/oe.pkl
-          test -f models/model.pkl
-          test -f models/trf.pkl
-          test -f models/le_pkl.pkl
-
-      - name: upload-project-artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: project-artifacts
-          path: |
-            models/
-            data/
 
   backend-testing:
     needs: project_testing
@@ -83,32 +67,22 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
+          pip install "dvc[s3]"
 
-      - name: download-project-artifacts
-        uses: actions/download-artifact@v4
+      - name: s3_config
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          name: project-artifacts
-          path: .
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
 
-      - name: verify-artifacts
+      - name: pull-data-from-s3
         run: |
-          echo "Checking data..."
-          ls -lh data
-
-          echo "Checking models..."
-          ls -lh models
-
-          test -f models/oe.pkl
-          test -f models/model.pkl
-          test -f models/trf.pkl
-          test -f models/le_pkl.pkl
+          dvc pull
 
       - name: start-backend
         run: |
-          python -m uvicorn backend.app:app \
-            --host 127.0.0.1 \
-            --port 8002 &
-
+          python -m uvicorn backend.app:app --host 127.0.0.1 --port 8002 &
           echo $! > uvicorn.pid
 
       - name: stop-for-backend
@@ -122,7 +96,8 @@ jobs:
       - name: stop-backend
         if: always()
         run: |
-          kill $(cat uvicorn.pid) || true
+          kill $(cat uvicorn.pid)
+
 
   docker-image:
     needs: backend-testing
@@ -136,41 +111,36 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+      
 
-      - name: download-project-artifacts
-        uses: actions/download-artifact@v4
+      - name: install-dependencies
+        run: | 
+            pip install --upgrade pip
+            pip install dvc
+            pip install dvc[s3]
+
+
+      - name: s3_config
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          name: project-artifacts
-          path: .
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
 
-      - name: verify-models-before-build
+
+      - name: pull-data-from-s3
         run: |
-          echo "Models available before Docker build:"
-          ls -lh models
+          dvc pull
 
-          test -f models/oe.pkl
-          test -f models/model.pkl
-          test -f models/trf.pkl
-          test -f models/le_pkl.pkl
 
       - name: build-docker-image
         run: |
           docker build -t uber_image:latest .
 
-      - name: verify-models-inside-image
-        run: |
-          docker run --rm uber_image:latest \
-            ls -lh /app/models
-
-          docker run --rm uber_image:latest \
-            test -f /app/models/oe.pkl
 
       - name: run-docker-container
         run: |
-          docker run -d \
-            -p 8002:8002 \
-            --name uber_container \
-            uber_image:latest
+          docker run -d -p 8002:8002 --name uber_container uber_image:latest
 
       - name: test-container
         run: |
@@ -184,33 +154,85 @@ jobs:
           docker rm uber_container || true
           docker rmi uber_image:latest || true
 
+
+  # docker-hub:
+  #   needs: docker-image
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: code-checkout
+  #       uses: actions/checkout@v4
+      
+
+  #     - name: install-dependencies
+  #       run: | 
+  #           pip install --upgrade pip
+  #           pip install dvc
+  #           pip install dvc[s3]
+      
+  #     - name: s3_config
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ap-south-1
+
+
+  #     - name: pull-data-from-s3
+  #       run: |
+  #         dvc pull
+
+
+  #     - name: build-docker-image
+  #       run: |
+  #         docker build -t uber_image:latest .
+      
+
+  #     - name: tag-image
+  #       run: |
+  #         docker tag uber_image:latest suyash0p/uber_image:latest
+
+
+  #     - name: docker-login
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_TOKEN }}
+
+
+  #     - name: push-image
+  #       run: |
+  #         docker push suyash0p/uber_image:latest
+
+
+
   ecr-push:
     needs: docker-image
     runs-on: ubuntu-latest
 
     steps:
-      - name: checkout-code
+      - name: code-checkout
         uses: actions/checkout@v4
 
       - name: setup-python
         uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
+      
+      - name: install-dependencies
+        run: | 
+            pip install --upgrade pip
+            pip install dvc
+            pip install dvc[s3]
 
-      - name: download-project-artifacts
-        uses: actions/download-artifact@v4
+      - name: s3_config
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          name: project-artifacts
-          path: .
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
 
-      - name: verify-models
+      - name: pull-data-from-s3
         run: |
-          ls -lh models
-
-          test -f models/oe.pkl
-          test -f models/model.pkl
-          test -f models/trf.pkl
-          test -f models/le_pkl.pkl
+          dvc pull
 
       - name: aws_config
         uses: aws-actions/configure-aws-credentials@v4
@@ -219,33 +241,28 @@ jobs:
           aws-secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
+
       - name: ecr-login
         run: |
-          aws ecr get-login-password \
-            --region ap-south-1 | \
-          docker login \
-            --username AWS \
-            --password-stdin \
-            577267183471.dkr.ecr.ap-south-1.amazonaws.com
+          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 577267183471.dkr.ecr.ap-south-1.amazonaws.com
 
       - name: build-tag-image
         run: |
           docker build -t uber_image:latest .
-
-          docker tag \
-            uber_image:latest \
-            577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
+          docker tag uber_image:latest 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
 
       - name: push-to-ecr
         run: |
-          docker push \
-            577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
+          docker push 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
+  
+
 
   frontend-docker-hub:
     needs: docker-image
     runs-on: ubuntu-latest
 
     steps:
+
       - name: checkout-code
         uses: actions/checkout@v4
 
@@ -260,6 +277,22 @@ jobs:
         run: |
           docker build -t uber-frontend:latest .
 
+
+      # - name: docker-login
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_TOKEN }}
+
+      # - name: tag-for-dockerhub
+      #   run: |
+      #     docker tag uber-frontend:latest suyash0p/uber-frontend:latest
+
+      # - name: push-to-dockerhub
+      #   run: |
+      #     docker push suyash0p/uber-frontend:latest
+
+
       - name: aws-config
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -269,20 +302,19 @@ jobs:
 
       - name: ecr-login
         run: |
-          aws ecr get-login-password \
-            --region ap-south-1 | \
-          docker login \
-            --username AWS \
-            --password-stdin \
-            577267183471.dkr.ecr.ap-south-1.amazonaws.com
+          aws ecr get-login-password --region ap-south-1 | \
+          docker login --username AWS --password-stdin \
+          577267183471.dkr.ecr.ap-south-1.amazonaws.com
 
       - name: tag-for-ecr
         run: |
-          docker tag \
-            uber-frontend:latest \
-            577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
+          docker tag uber-frontend:latest \
+          577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
 
       - name: push-to-ecr
         run: |
           docker push \
-            577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
+          577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
+
+
+      
