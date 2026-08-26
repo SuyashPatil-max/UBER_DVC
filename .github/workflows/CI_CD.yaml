@@ -232,7 +232,9 @@ jobs:
       - name: image-build
         working-directory: frontend
         run:  |
-            docker build -t uber-frontend:latest . 
+            docker build \
+            --build-arg VITE_API_BASE_URL=http://ec2-13-201-102-122.ap-south-1.compute.amazonaws.com:8002 \
+            -t uber-frontend:latest .
 
 
       - name: tag-for-ecr
