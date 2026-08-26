@@ -243,8 +243,8 @@ jobs:
       
   deploy-ec2:
     needs:
-      - ecr-push
-      - frontend-docker-hub
+      - backend-ecr-push
+      - frontend-ecr-push
 
     runs-on: ubuntu-latest
 
