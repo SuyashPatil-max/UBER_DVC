@@ -7,263 +7,267 @@ on:
 
 jobs:
 
-  # project_testing:
-  #   runs-on: ubuntu-latest
+  project_testing:
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: checkout-code
-  #       uses: actions/checkout@v4
+    steps:
+      - name: checkout-code
+        uses: actions/checkout@v4
 
-  #     - name: setup-python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.13"
+      - name: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
 
-  #     - name: install-dependencies
-  #       run: |
-  #         pip install --upgrade pip
-  #         pip install -r requirements.txt
-  #         pip install pytest
-  #         pip install "dvc[s3]"
-  #         pip install dagshub
+      - name: install-dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+          pip install "dvc[s3]"
+          pip install dagshub
 
-  #     - name: s3_config
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ap-south-1
+      - name: s3_config
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
 
-  #     - name: pull-data-from-s3
-  #       run: |
-  #         dvc pull
+      - name: pull-data-from-s3
+        run: |
+          dvc pull
 
-  #     - name: dagshub-auth
-  #       env:
-  #         DAGSHUB_USER: ${{ secrets.DAGSHUB_USER }}
-  #         DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-  #       run: |
-  #         dagshub login --token "$DAGSHUB_TOKEN"
+      - name: dagshub-auth
+        env:
+          DAGSHUB_USER: ${{ secrets.DAGSHUB_USER }}
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          dagshub login --token "$DAGSHUB_TOKEN"
 
-  #     - name: dvc-pipeline
-  #       run: |
-  #         dvc repro
-
-
-  # backend-testing:
-  #   needs: project_testing
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #     - name: checkout-code
-  #       uses: actions/checkout@v4
-
-  #     - name: setup-python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.13"
-
-  #     - name: install-dependencies
-  #       run: |
-  #         pip install --upgrade pip
-  #         pip install -r requirements.txt
-  #         pip install "dvc[s3]"
-
-  #     - name: s3_config
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ap-south-1
-
-  #     - name: pull-data-from-s3
-  #       run: |
-  #         dvc pull
-
-  #     - name: start-backend
-  #       run: |
-  #         python -m uvicorn backend.app:app --host 127.0.0.1 --port 8002 &
-  #         echo $! > uvicorn.pid
-
-  #     - name: stop-for-backend
-  #       run: |
-  #         sleep 10
-
-  #     - name: health-check
-  #       run: |
-  #         curl --fail http://127.0.0.1:8002/health
-
-  #     - name: stop-backend
-  #       if: always()
-  #       run: |
-  #         kill $(cat uvicorn.pid)
+      - name: dvc-pipeline
+        run: |
+          dvc repro
 
 
-  # docker-image:
-  #   needs: backend-testing
-  #   runs-on: ubuntu-latest
+  backend-testing:
+    needs: project_testing
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: checkout-code
-  #       uses: actions/checkout@v4
+    steps:
+      - name: checkout-code
+        uses: actions/checkout@v4
 
-  #     - name: setup-python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.13"
+      - name: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: install-dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install "dvc[s3]"
+
+      - name: s3_config
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: pull-data-from-s3
+        run: |
+          dvc pull
+
+      - name: start-backend
+        run: |
+          python -m uvicorn backend.app:app --host 127.0.0.1 --port 8002 &
+          echo $! > uvicorn.pid
+
+      - name: stop-for-backend
+        run: |
+          sleep 10
+
+      - name: health-check
+        run: |
+          curl --fail http://127.0.0.1:8002/health
+
+      - name: stop-backend
+        if: always()
+        run: |
+          kill $(cat uvicorn.pid)
+
+
+  docker-image:
+    needs: backend-testing
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout-code
+        uses: actions/checkout@v4
+
+      - name: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
       
 
-  #     - name: install-dependencies
-  #       run: | 
-  #           pip install --upgrade pip
-  #           pip install dvc
-  #           pip install dvc[s3]
+      - name: install-dependencies
+        run: | 
+            pip install --upgrade pip
+            pip install dvc
+            pip install dvc[s3]
 
 
-  #     - name: s3_config
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ap-south-1
+      - name: s3_config
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
 
 
-  #     - name: pull-data-from-s3
-  #       run: |
-  #         dvc pull
+      - name: pull-data-from-s3
+        run: |
+          dvc pull
 
 
-  #     - name: build-docker-image
-  #       run: |
-  #         docker build -t uber_image:latest .
+      - name: build-docker-image
+        run: |
+          docker build -t uber_image:latest .
 
 
-  #     - name: run-docker-container
-  #       run: |
-  #         docker run -d -p 8002:8002 --name uber_container uber_image:latest
+      - name: run-docker-container
+        run: |
+          docker run -d -p 8002:8002 --name uber_container uber_image:latest
 
-  #     - name: test-container
-  #       run: |
-  #         sleep 10
-  #         curl --fail http://127.0.0.1:8002/health
+      - name: test-container
+        run: |
+          sleep 10
+          curl --fail http://127.0.0.1:8002/health
 
-  #     - name: delete-container-and-image
-  #       if: always()
-  #       run: |
-  #         docker stop uber_container || true
-  #         docker rm uber_container || true
-  #         docker rmi uber_image:latest || true
+      - name: delete-container-and-image
+        if: always()
+        run: |
+          docker stop uber_container || true
+          docker rm uber_container || true
+          docker rmi uber_image:latest || true
 
 
-  # backend-ecr-push:
-  #   needs: docker-image
-  #   runs-on: ubuntu-latest
+  backend-ecr-push:
+    needs: docker-image
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: code-checkout
-  #       uses: actions/checkout@v4
+    steps:
+      - name: code-checkout
+        uses: actions/checkout@v4
 
-  #     - name: setup-python
-  #       uses: actions/setup-python@v5
+      - name: setup-python
+        uses: actions/setup-python@v5
       
-  #     - name: install-dependencies
-  #       run: | 
-  #           pip install --upgrade pip
-  #           pip install dvc
-  #           pip install dvc[s3]
+      - name: install-dependencies
+        run: | 
+            pip install --upgrade pip
+            pip install dvc
+            pip install dvc[s3]
 
-  #     - name: s3_config
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ap-south-1
+      - name: s3_config
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
 
-  #     - name: pull-data-from-s3
-  #       run: |
-  #         dvc pull
+      - name: pull-data-from-s3
+        run: |
+          dvc pull
 
-  #     - name: aws_config
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
-  #         aws-secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
-  #         aws-region: ap-south-1
+      - name: aws_config
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
 
 
-  #     - name: ecr-login
-  #       run: |
-  #         aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 577267183471.dkr.ecr.ap-south-1.amazonaws.com
+      - name: ecr-login
+        run: |
+          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 577267183471.dkr.ecr.ap-south-1.amazonaws.com
 
-  #     - name: build-tag-image
-  #       run: |
-  #         docker build -t uber_image:latest .
-  #         docker tag uber_image:latest 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
+      - name: build-tag-image
+        run: |
+          docker build -t uber_image:latest .
+          docker tag uber_image:latest 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
 
-  #     - name: push-to-ecr
-  #       run: |
-  #         docker push 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
+      - name: push-to-ecr
+        run: |
+          docker push 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
   
 
 
-  # frontend-ecr-push:
-  #   needs: docker-image
-  #   runs-on: ubuntu-latest
+  frontend-ecr-push:
+    needs: docker-image
+    runs-on: ubuntu-latest
 
-  #   steps:
+    steps:
 
-  #     - name: checkout-code
-  #       uses: actions/checkout@v4
+      - name: checkout-code
+        uses: actions/checkout@v4
 
 
-  #     - name: aws-config
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
-  #         aws-secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
-  #         aws-region: ap-south-1
+      - name: aws-config
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
 
-  #     - name: ecr-login
-  #       run: |
-  #         aws ecr get-login-password --region ap-south-1 | \
-  #         docker login --username AWS --password-stdin \
-  #         577267183471.dkr.ecr.ap-south-1.amazonaws.com
+      - name: ecr-login
+        run: |
+          aws ecr get-login-password --region ap-south-1 | \
+          docker login --username AWS --password-stdin \
+          577267183471.dkr.ecr.ap-south-1.amazonaws.com
       
-  #     - name: image-build
-  #       working-directory: frontend
-  #       run:  |
-  #           docker build -t uber-frontend:latest . 
+      - name: image-build
+        working-directory: frontend
+        run:  |
+            docker build -t uber-frontend:latest . 
 
 
-  #     - name: tag-for-ecr
-  #       run: |
-  #         docker tag uber-frontend:latest \
-  #         577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
+      - name: tag-for-ecr
+        run: |
+          docker tag uber-frontend:latest \
+          577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
 
-  #     - name: push-to-ecr
-  #       run: |
-  #         docker push \
-  #         577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
+      - name: push-to-ecr
+        run: |
+          docker push \
+          577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
 
 
       
-    ec2-deployement: 
-      runs-on: ubuntu-latest
+  ec2-deployment:
+    needs:
+      - backend-ecr-push
+      - frontend-ecr-push
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: Deploy to EC2
-          uses: appleboy/ssh-action@v1.2.2
-          with:
-            host: ${{ secrets.EC2_HOST }}
-            username: ${{ secrets.EC2_USER }}
-            key: ${{ secrets.EC2_SSH_KEY }}
-            script: |
-              docker stop uber_dvc uber-frontend 2>/dev/null || true
-              docker rm uber_dvc uber-frontend 2>/dev/null || true
-              docker rmi 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest 2>/dev/null || true
-              docker rmi 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest 2>/dev/null || true
-              aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 577267183471.dkr.ecr.ap-south-1.amazonaws.com
-              docker pull 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
-              docker pull 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
-              docker run -d --name uber_dvc -p 8002:8002 --name backend 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
-              docker run -d --name uber-frontend -p 5174:80 --name frontend 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker stop uber_dvc uber-frontend 2>/dev/null || true
+            docker rm uber_dvc uber-frontend 2>/dev/null || true
+            docker rmi 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest 2>/dev/null || true
+            docker rmi 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest 2>/dev/null || true
+            aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 577267183471.dkr.ecr.ap-south-1.amazonaws.com
+            docker pull 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
+            docker pull 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
+            docker run -d --name uber_dvc -p 8002:8002 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
+            docker run -d --name uber-frontend -p 5174:80 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
+            docker ps
