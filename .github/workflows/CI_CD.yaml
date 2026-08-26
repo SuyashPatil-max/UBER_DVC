@@ -228,6 +228,10 @@ jobs:
           aws ecr get-login-password --region ap-south-1 | \
           docker login --username AWS --password-stdin \
           577267183471.dkr.ecr.ap-south-1.amazonaws.com
+      
+      - name: image-build
+        run:  |
+            docker build -t uber-frontend:latest . 
 
       - name: tag-for-ecr
         run: |
