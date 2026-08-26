@@ -247,157 +247,58 @@ jobs:
 
 
       
-  deploy-ec2:
-    # needs:
-    #   - backend-ecr-push
-    #   - frontend-ecr-push
+    ec2-deployement: 
+      runs-on: ubuntu-latest
 
-    runs-on: ubuntu-latest
+      steps: 
+        - name: Checkout
+          uses: actions/checkout@v4
 
-    steps:
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: ap-south-1
 
-      - name: configure-aws
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+        - name: Login to Amazon ECR
+          id: login-ecr
+          uses: aws-actions/amazon-ecr-login@v2
 
-      - name: start-ec2
-        run: |
-          INSTANCE_ID="${{ secrets.EC2_INSTANCE_ID }}"
+        - name: Build and Push Backend
+          env:
+            REGISTRY: 577267183471.dkr.ecr.ap-south-1.amazonaws.com
+            IMAGE: uber_dvc
+          run: |
+            docker build -t $REGISTRY/$IMAGE:latest .
+            docker push $REGISTRY/$IMAGE:latest
 
-          STATE=$(aws ec2 describe-instances \
-            --instance-ids "$INSTANCE_ID" \
-            --query "Reservations[0].Instances[0].State.Name" \
-            --output text)
+        - name: Build and Push Frontend
+          env:
+            REGISTRY: 577267183471.dkr.ecr.ap-south-1.amazonaws.com
+            IMAGE: uber-frontend
+          run: |
+            docker build -t $REGISTRY/$IMAGE:latest ./frontend
+            docker push $REGISTRY/$IMAGE:latest
 
-          echo "Current EC2 state: $STATE"
 
-          if [ "$STATE" = "stopped" ]; then
-            echo "Starting EC2 instance..."
+        - name: Deploy to EC2
+          uses: appleboy/ssh-action@v1.2.2
+          with:
+            host: ${{ secrets.EC2_HOST }}
+            username: ${{ secrets.EC2_USER }}
+            key: ${{ secrets.EC2_SSH_KEY }}
+            script: |
+              docker stop uber_dvc uber-frontend 2>/dev/null || true
+              docker rm uber_dvc uber-frontend 2>/dev/null || true
+              docker rmi 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest 2>/dev/null || true
+              docker rmi 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest 2>/dev/null || true
 
-            aws ec2 start-instances \
-              --instance-ids "$INSTANCE_ID"
 
-            aws ec2 wait instance-running \
-              --instance-ids "$INSTANCE_ID"
-
-            echo "EC2 instance is running."
-
-          elif [ "$STATE" = "running" ]; then
-            echo "EC2 instance is already running."
-
-          else
-            echo "EC2 is in state: $STATE"
-            exit 1
-          fi
-
-      - name: wait-for-ssm
-        run: |
-          INSTANCE_ID="${{ secrets.EC2_INSTANCE_ID }}"
-
-          echo "Waiting for SSM agent..."
-
-          for i in {1..30}; do
-
-            STATUS=$(aws ssm describe-instance-information \
-              --filters "Key=InstanceIds,Values=$INSTANCE_ID" \
-              --query "InstanceInformationList[0].PingStatus" \
-              --output text 2>/dev/null || true)
-
-            echo "SSM status: $STATUS"
-
-            if [ "$STATUS" = "Online" ]; then
-              echo "SSM agent is online."
-              exit 0
-            fi
-
-            sleep 10
-
-          done
-
-          echo "SSM agent did not become online."
-          exit 1
-
-      - name: deploy-containers
-        run: |
-
-          INSTANCE_ID="${{ secrets.EC2_INSTANCE_ID }}"
-
-          COMMAND_ID=$(aws ssm send-command \
-            --instance-ids "$INSTANCE_ID" \
-            --document-name "AWS-RunShellScript" \
-            --comment "Deploy latest Docker images" \
-            --parameters 'commands=[
-              "echo Starting deployment...",
-              "echo Stopping old containers...",
-              "docker rm -f uber-backend 2>/dev/null || true",
-              "docker rm -f uber-frontend 2>/dev/null || true",
-              "echo Removing old images...",
-              "docker rmi -f 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest 2>/dev/null || true",
-              "docker rmi -f 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest 2>/dev/null || true",
-              "echo Logging into ECR...",
-              "aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 577267183471.dkr.ecr.ap-south-1.amazonaws.com",
-              "echo Pulling backend image...",
-              "docker pull 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest",
-              "echo Pulling frontend image...",
-              "docker pull 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest",
-              "echo Starting backend container...",
-              "docker run -d --name uber-backend --restart unless-stopped -p 8002:8002 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest",
-              "echo Starting frontend container...",
-              "docker run -d --name uber-frontend --restart unless-stopped -p 5174:80 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest",
-              "echo Containers started.",
-              "docker ps"
-            ]' \
-            --query "Command.CommandId" \
-            --output text)
-
-          echo "SSM Command ID: $COMMAND_ID"
-
-          echo "Waiting for deployment..."
-
-          sleep 10
-
-          aws ssm wait command-executed \
-            --command-id "$COMMAND_ID" \
-            --instance-id "$INSTANCE_ID"
-
-          echo "Deployment completed."
-
-          aws ssm get-command-invocation \
-            --command-id "$COMMAND_ID" \
-            --instance-id "$INSTANCE_ID" \
-            --query "StandardOutputContent" \
-            --output text
-
-      - name: deployment-health-check
-        run: |
-
-          INSTANCE_ID="${{ secrets.EC2_INSTANCE_ID }}"
-
-          COMMAND_ID=$(aws ssm send-command \
-            --instance-ids "$INSTANCE_ID" \
-            --document-name "AWS-RunShellScript" \
-            --parameters 'commands=[
-              "echo BACKEND HEALTH CHECK",
-              "curl --fail http://localhost:8002/health",
-              "echo FRONTEND HEALTH CHECK",
-              "curl --fail http://localhost:5174/",
-              "echo DOCKER CONTAINERS",
-              "docker ps"
-            ]' \
-            --query "Command.CommandId" \
-            --output text)
-
-          sleep 10
-
-          aws ssm wait command-executed \
-            --command-id "$COMMAND_ID" \
-            --instance-id "$INSTANCE_ID"
-
-          aws ssm get-command-invocation \
-            --command-id "$COMMAND_ID" \
-            --instance-id "$INSTANCE_ID" \
-            --query "StandardOutputContent" \
-            --output text
+        - name: pulling-new-images
+          run: | 
+              aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 577267183471.dkr.ecr.ap-south-1.amazonaws.com
+              docker pull 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
+              docker pull 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
+              docker run -d --name uber_dvc YOUR_BACKEND_RUN_COMMAND
+              docker run -d --name uber-frontend YOUR_FRONTEND_RUN_COMMAND
