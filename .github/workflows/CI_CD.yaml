@@ -265,5 +265,5 @@ jobs:
               aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 577267183471.dkr.ecr.ap-south-1.amazonaws.com
               docker pull 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
               docker pull 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
-              docker run -d --name uber_dvc YOUR_BACKEND_RUN_COMMAND
-              docker run -d --name uber-frontend YOUR_FRONTEND_RUN_COMMAND
+              docker run -d --name uber_dvc -p 8002:8002 --name backend 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
+              docker run -d --name uber-frontend -p 5174:80 --name frontend 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
