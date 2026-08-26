@@ -36,13 +36,13 @@ body {
   color: var(--text);
 
   background:
-      radial-gradient(circle at top,
-      rgba(34,197,94,.06),
-      transparent 30%),
-      radial-gradient(circle at bottom right,
-      rgba(139,92,246,.05),
-      transparent 35%),
+      radial-gradient(circle at 12% -8%, rgba(180,165,245,.12), transparent 40%),
+      radial-gradient(circle at 88% 4%, rgba(95,203,155,.09), transparent 38%),
+      radial-gradient(circle at 100% 65%, rgba(143,177,232,.08), transparent 42%),
+      radial-gradient(circle at -5% 95%, rgba(227,138,147,.06), transparent 38%),
+      radial-gradient(circle at 50% 40%, rgba(255,255,255,.03), transparent 60%),
       var(--bg);
+  background-attachment: fixed;
 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -122,31 +122,184 @@ select {
 /* Result card */
 
 .result-card {
+  --rc: var(--result-color, #8b5cf6);
+
+  position: relative;
+  isolation: isolate;
 
   margin-top: 0px;
 
-  padding: 24px;
+  padding: 28px 28px 26px;
 
   max-width: 850px;
 
   margin-left: auto;
   margin-right: auto;
 
-  border-radius: 24px;
+  border-radius: 28px;
 
   background:
+      radial-gradient(circle at 18% -10%, color-mix(in srgb, var(--rc) 16%, transparent), transparent 55%),
       linear-gradient(
-          135deg,
-          #171717,
-          #0f0f0f 45%,
-          #090909
+          160deg,
+          #161616,
+          #0e0e0e 45%,
+          #080808
       );
 
-  border: 1px solid rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.07);
 
   box-shadow:
-      0 25px 80px rgba(0,0,0,.55);
+      0 25px 80px rgba(0,0,0,.6),
+      0 0 70px -24px color-mix(in srgb, var(--rc) 45%, transparent);
 
+}
+
+/* Gradient hairline border, tinted by the predicted class color */
+
+.result-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+
+  background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--rc) 55%, transparent),
+      transparent 42%,
+      transparent 58%,
+      color-mix(in srgb, var(--rc) 30%, transparent)
+  );
+
+  -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Result card header row */
+
+.result-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.result-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 6px 14px;
+
+  border-radius: 999px;
+
+  background: color-mix(in srgb, var(--rc) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rc) 30%, transparent);
+
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--rc) 80%, white 20%);
+}
+
+.result-pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--rc);
+  box-shadow: 0 0 8px var(--rc);
+}
+
+.result-model-tag {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Divider between the two result columns */
+
+.result-divider {
+  width: 1px;
+  align-self: stretch;
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(255,255,255,.1) 20%,
+      rgba(255,255,255,.1) 80%,
+      transparent
+  );
+}
+
+/* Emoji badge */
+
+.result-emoji-badge {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+
+  background:
+      radial-gradient(circle at 32% 26%, color-mix(in srgb, var(--rc) 32%, transparent), transparent 70%),
+      rgba(255,255,255,.03);
+
+  border: 1px solid color-mix(in srgb, var(--rc) 38%, transparent);
+
+  box-shadow: 0 0 34px -8px color-mix(in srgb, var(--rc) 60%, transparent);
+}
+
+/* Confidence bar */
+
+.confidence-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  overflow: hidden;
+}
+
+.confidence-fill {
+  height: 100%;
+  border-radius: 999px;
+
+  background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--rc) 65%, white 15%),
+      var(--rc)
+  );
+
+  box-shadow: 0 0 14px color-mix(in srgb, var(--rc) 65%, transparent);
+
+  transition: width .9s cubic-bezier(0.16,1,0.3,1);
+}
+
+/* Legend chips */
+
+.result-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 7px 13px;
+
+  border-radius: 999px;
+
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
 }
 
 /* Card hover */

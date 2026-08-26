@@ -230,8 +230,10 @@ jobs:
           577267183471.dkr.ecr.ap-south-1.amazonaws.com
       
       - name: image-build
+        working-directory: frontend
         run:  |
             docker build -t uber-frontend:latest . 
+
 
       - name: tag-for-ecr
         run: |

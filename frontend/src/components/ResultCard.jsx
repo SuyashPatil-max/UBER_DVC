@@ -11,31 +11,50 @@ export default function ResultCard({ result }) {
   if (!result) return null;
 
   const probability = Number(result.probability ?? 0);
+  const confidencePct = probability * 100;
   const meta = getResultMeta(result.prediction);
 
   // Binary donut: the predicted class's own probability, and the
   // remainder, so the ring always reads as "how sure are we" rather
   // than a full class breakdown.
   const data = [
-    { name: meta.label, value: probability * 100, color: meta.color },
-    { name: "Remainder", value: (1 - probability) * 100, color: "#2A2A2C" },
+    { name: meta.label, value: confidencePct, color: meta.color },
+    { name: "Remainder", value: 100 - confidencePct, color: "#2A2A2C" },
   ];
 
   return (
-    <div className="result-card animate-resultReveal">
+    <div
+      className="result-card animate-resultReveal"
+      style={{ "--result-color": meta.color }}
+    >
 
-      <div className="grid md:grid-cols-2 gap-6 items-center">
+      {/* HEADER */}
+
+      <div className="result-topbar">
+
+        <span className="result-pill">
+          <span className="result-pill-dot" />
+          Prediction Result
+        </span>
+
+        <span className="result-model-tag">
+          Ride Completion Model
+        </span>
+
+      </div>
+
+      <div className="grid md:grid-cols-[1fr_auto_1fr] gap-6 md:gap-8 items-center">
 
         {/* LEFT */}
 
         <div className="text-center">
 
-          <div className="emoji-pop text-5xl mb-2">
-            {meta.emoji}
+          <div className="result-emoji-badge emoji-pop">
+            <span className="text-4xl">{meta.emoji}</span>
           </div>
 
           <h2
-            className="text-2xl font-bold tracking-tight"
+            className="mt-4 text-2xl font-bold tracking-tight"
             style={{ color: meta.color }}
           >
             {meta.label}
@@ -45,19 +64,30 @@ export default function ResultCard({ result }) {
             Predicted ride outcome
           </p>
 
-          <div className="mt-5">
+          <div className="mt-6">
 
             <p className="text-xs tracking-[0.3em] uppercase text-zinc-500">
               Probability
             </p>
 
             <h3 className="mt-1 text-3xl font-bold">
-              {(probability * 100).toFixed(1)}%
+              {confidencePct.toFixed(1)}%
             </h3>
+
+            <div className="confidence-track mt-3 max-w-[220px] mx-auto">
+              <div
+                className="confidence-fill"
+                style={{ width: `${confidencePct}%` }}
+              />
+            </div>
 
           </div>
 
         </div>
+
+        {/* DIVIDER */}
+
+        <div className="result-divider hidden md:block" aria-hidden="true" />
 
         {/* RIGHT */}
 
@@ -123,7 +153,7 @@ export default function ResultCard({ result }) {
                   fontSize="20"
                   fontWeight="700"
                 >
-                  {(probability * 100).toFixed(0)}%
+                  {confidencePct.toFixed(0)}%
                 </text>
 
                 <text
@@ -144,27 +174,27 @@ export default function ResultCard({ result }) {
 
           </div>
 
-          <div className="mt-3 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
+          <div className="mt-3 flex flex-wrap justify-center gap-2 text-sm">
 
-            <div className="flex items-center gap-2">
+            <div className="result-chip">
               <div
-                className="h-3 w-3 rounded-full"
+                className="h-2.5 w-2.5 rounded-full"
                 style={{
                   backgroundColor: meta.color,
                   boxShadow: `0 0 10px ${meta.color}`,
                 }}
               />
-              <span>{meta.label}</span>
-              <strong>{(probability * 100).toFixed(1)}%</strong>
+              <span className="text-zinc-300">{meta.label}</span>
+              <strong>{confidencePct.toFixed(1)}%</strong>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="result-chip">
               <div
-                className="h-3 w-3 rounded-full"
+                className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: "#2A2A2C" }}
               />
-              <span>Remaining uncertainty</span>
-              <strong>{((1 - probability) * 100).toFixed(1)}%</strong>
+              <span className="text-zinc-300">Remaining uncertainty</span>
+              <strong>{(100 - confidencePct).toFixed(1)}%</strong>
             </div>
 
           </div>
