@@ -8,7 +8,7 @@ RUN npm ci
 COPY . .
 
 
-ARG VITE_API_BASE_URL=http://ec2-13-201-102-122.ap-south-1.compute.amazonaws.com:8002
+ARG VITE_API_BASE_URL=http://ec2-13-203-214-115.ap-south-1.compute.amazonaws.com:8002
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 RUN npm run build

@@ -233,7 +233,7 @@ jobs:
         working-directory: frontend
         run:  |
             docker build \
-            --build-arg VITE_API_BASE_URL=http://ec2-13-201-102-122.ap-south-1.compute.amazonaws.com:8002 \
+            --build-arg VITE_API_BASE_URL=http://ec2-13-203-214-115.ap-south-1.compute.amazonaws.com:8002 \
             -t uber-frontend:latest .
 
 
