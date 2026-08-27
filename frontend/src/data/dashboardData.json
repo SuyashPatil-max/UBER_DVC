@@ -1,0 +1,331 @@
+{
+  "overview": {
+    "totalBookings": 150000,
+    "completedBookings": 93000,
+    "completionRate": 62,
+    "totalRevenue": 47260574,
+    "avgRideDistance": 26,
+    "statusBreakdown": [
+      {
+        "status": "No Driver Found",
+        "count": 10500
+      },
+      {
+        "status": "Incomplete",
+        "count": 9000
+      },
+      {
+        "status": "Completed",
+        "count": 93000
+      },
+      {
+        "status": "Cancelled by Driver",
+        "count": 27000
+      },
+      {
+        "status": "Cancelled by Customer",
+        "count": 10500
+      }
+    ],
+    "bookingsOverTime": [
+      {
+        "month": "2024-01",
+        "count": 12861
+      },
+      {
+        "month": "2024-02",
+        "count": 11927
+      },
+      {
+        "month": "2024-03",
+        "count": 12719
+      },
+      {
+        "month": "2024-04",
+        "count": 12199
+      },
+      {
+        "month": "2024-05",
+        "count": 12778
+      },
+      {
+        "month": "2024-06",
+        "count": 12440
+      },
+      {
+        "month": "2024-07",
+        "count": 12897
+      },
+      {
+        "month": "2024-08",
+        "count": 12636
+      },
+      {
+        "month": "2024-09",
+        "count": 12248
+      },
+      {
+        "month": "2024-10",
+        "count": 12651
+      },
+      {
+        "month": "2024-11",
+        "count": 12394
+      },
+      {
+        "month": "2024-12",
+        "count": 12250
+      }
+    ]
+  },
+  "vehicleType": [
+    {
+      "vehicleType": "Auto",
+      "bookings": 23155,
+      "totalValue": 11727615,
+      "totalDistance": 601789,
+      "avgDistance": 25.99
+    },
+    {
+      "vehicleType": "Go Mini",
+      "bookings": 18549,
+      "totalValue": 9411418,
+      "totalDistance": 482086,
+      "avgDistance": 25.99
+    },
+    {
+      "vehicleType": "Go Sedan",
+      "bookings": 16676,
+      "totalValue": 8538560,
+      "totalDistance": 433203,
+      "avgDistance": 25.98
+    },
+    {
+      "vehicleType": "Bike",
+      "bookings": 14034,
+      "totalValue": 7144913,
+      "totalDistance": 364867,
+      "avgDistance": 26
+    },
+    {
+      "vehicleType": "Premier Sedan",
+      "bookings": 11252,
+      "totalValue": 5733655,
+      "totalDistance": 291946,
+      "avgDistance": 25.95
+    },
+    {
+      "vehicleType": "eBike",
+      "bookings": 6551,
+      "totalValue": 3298157,
+      "totalDistance": 172567,
+      "avgDistance": 26.34
+    },
+    {
+      "vehicleType": "Uber XL",
+      "bookings": 2783,
+      "totalValue": 1406256,
+      "totalDistance": 71588,
+      "avgDistance": 25.72
+    }
+  ],
+  "revenue": {
+    "revenueByPaymentMethod": [
+      {
+        "method": "UPI",
+        "value": 21274591
+      },
+      {
+        "method": "Cash",
+        "value": 11756071
+      },
+      {
+        "method": "Uber Wallet",
+        "value": 5669070
+      },
+      {
+        "method": "Credit Card",
+        "value": 4753767
+      },
+      {
+        "method": "Debit Card",
+        "value": 3807075
+      }
+    ],
+    "revenueOverTime": [
+      {
+        "month": "2024-01",
+        "value": 4001547
+      },
+      {
+        "month": "2024-02",
+        "value": 3756610
+      },
+      {
+        "month": "2024-03",
+        "value": 4174900
+      },
+      {
+        "month": "2024-04",
+        "value": 3885255
+      },
+      {
+        "month": "2024-05",
+        "value": 3935207
+      },
+      {
+        "month": "2024-06",
+        "value": 3964298
+      },
+      {
+        "month": "2024-07",
+        "value": 3961939
+      },
+      {
+        "month": "2024-08",
+        "value": 3867753
+      },
+      {
+        "month": "2024-09",
+        "value": 3820536
+      },
+      {
+        "month": "2024-10",
+        "value": 4008403
+      },
+      {
+        "month": "2024-11",
+        "value": 3938458
+      },
+      {
+        "month": "2024-12",
+        "value": 3945668
+      }
+    ],
+    "topCustomers": [
+      {
+        "customerId": "CID2674107",
+        "value": 4987
+      },
+      {
+        "customerId": "CID7828101",
+        "value": 4722
+      },
+      {
+        "customerId": "CID2706299",
+        "value": 4277
+      },
+      {
+        "customerId": "CID4843078",
+        "value": 4228
+      },
+      {
+        "customerId": "CID2978596",
+        "value": 4220
+      },
+      {
+        "customerId": "CID5235759",
+        "value": 4202
+      },
+      {
+        "customerId": "CID5789715",
+        "value": 4133
+      },
+      {
+        "customerId": "CID9539119",
+        "value": 4109
+      },
+      {
+        "customerId": "CID1753183",
+        "value": 4088
+      },
+      {
+        "customerId": "CID8107092",
+        "value": 4060
+      }
+    ]
+  },
+  "cancellation": {
+    "totalCancelledByCustomer": 10500,
+    "totalCancelledByDriver": 27000,
+    "totalIncomplete": 9000,
+    "cancelledPercentage": 25,
+    "customerCancelReasons": [
+      {
+        "reason": "Wrong Address",
+        "count": 2362
+      },
+      {
+        "reason": "Change of plans",
+        "count": 2353
+      },
+      {
+        "reason": "Driver is not moving towards pickup location",
+        "count": 2335
+      },
+      {
+        "reason": "Driver asked to cancel",
+        "count": 2295
+      },
+      {
+        "reason": "AC is not working",
+        "count": 1155
+      }
+    ],
+    "driverCancelReasons": [
+      {
+        "reason": "Customer related issue",
+        "count": 6837
+      },
+      {
+        "reason": "The customer was coughing/sick",
+        "count": 6751
+      },
+      {
+        "reason": "Personal & Car related issues",
+        "count": 6726
+      },
+      {
+        "reason": "More than permitted people in there",
+        "count": 6686
+      }
+    ]
+  },
+  "ratings": [
+    {
+      "vehicleType": "Auto",
+      "avgCustomerRating": 4.4,
+      "avgDriverRating": 4.23
+    },
+    {
+      "vehicleType": "Bike",
+      "avgCustomerRating": 4.4,
+      "avgDriverRating": 4.23
+    },
+    {
+      "vehicleType": "eBike",
+      "avgCustomerRating": 4.4,
+      "avgDriverRating": 4.23
+    },
+    {
+      "vehicleType": "Go Mini",
+      "avgCustomerRating": 4.4,
+      "avgDriverRating": 4.23
+    },
+    {
+      "vehicleType": "Go Sedan",
+      "avgCustomerRating": 4.41,
+      "avgDriverRating": 4.23
+    },
+    {
+      "vehicleType": "Premier Sedan",
+      "avgCustomerRating": 4.4,
+      "avgDriverRating": 4.23
+    },
+    {
+      "vehicleType": "Uber XL",
+      "avgCustomerRating": 4.4,
+      "avgDriverRating": 4.24
+    }
+  ]
+}
