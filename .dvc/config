@@ -1,4 +1,4 @@
 [core]
     remote = s3_uber_bucket
 ['remote "s3_uber_bucket"']
-    url = s3://uberbucketssp
+    url = s3://ubers3bucket1
