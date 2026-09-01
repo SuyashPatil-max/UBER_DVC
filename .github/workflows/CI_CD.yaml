@@ -35,9 +35,17 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-north-1
+      - name: check-dvc-environment
+        run: |
+          dvc version
+          pip show dvc
+          pip show pygtrie
 
       - name: pull-data-from-s3
         run: |
+          dvc version
+          pip show dvc
+          pip show pygtrie
           dvc pull
 
       - name: dagshub-auth
