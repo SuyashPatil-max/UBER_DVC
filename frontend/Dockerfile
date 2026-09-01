@@ -8,7 +8,8 @@ RUN npm ci
 COPY . .
 
 
-ARG VITE_API_BASE_URL=http://ec2-56-228-27-102.eu-north-1.compute.amazonaws.com:8002
+# Point the frontend at the backend load balancer (listener on port 80), not a single EC2
+ARG VITE_API_BASE_URL=http://uber-lb-1-2111498017.eu-north-1.elb.amazonaws.com
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 RUN npm run build

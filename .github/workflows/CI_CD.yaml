@@ -240,8 +240,10 @@ jobs:
       
       - name: image-build-and-tag
         working-directory: frontend
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'http://uber-lb-1-2111498017.eu-north-1.elb.amazonaws.com' }}
         run:  |
-            docker build -t uber-frontend .
+            docker build --build-arg VITE_API_BASE_URL="$VITE_API_BASE_URL" -t uber-frontend .
             docker tag uber-frontend:latest 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
 
       - name: push-to-ecr
