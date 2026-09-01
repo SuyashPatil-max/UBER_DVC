@@ -255,14 +255,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to EC2 on backend 
+      - name: Deploy to EC2 on backend
         uses: appleboy/ssh-action@v1.2.2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.ECR_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-north-1
         with:
           host: ${{ secrets.EC2_HOST_BACKEND }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_DEFAULT_REGION
           script: |
             set -e
+
+            export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_DEFAULT_REGION
 
             sudo apt-get update -y
             sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
@@ -298,14 +305,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to EC2 on frontend 
+      - name: Deploy to EC2 on frontend
         uses: appleboy/ssh-action@v1.2.2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.ECR_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-north-1
         with:
           host: ${{ secrets.EC2_HOST_FRONTEND}}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_DEFAULT_REGION
           script: |
             set -e
+
+            export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_DEFAULT_REGION
+
             sudo apt-get update -y
             sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
