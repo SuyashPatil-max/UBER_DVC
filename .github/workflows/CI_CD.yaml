@@ -5,9 +5,11 @@ on:
     branches:
       - main
 
+# the jobs are being started in the order they are defined, but they can run in parallel if they don't have dependencies on each other.
+
 jobs:
 
-  project_testing:
+  project-testing:
     runs-on: ubuntu-latest
 
     steps:
@@ -51,7 +53,7 @@ jobs:
 
 
   backend-testing:
-    needs: project_testing
+    needs: project-testing
     runs-on: ubuntu-latest
 
     steps:
@@ -188,7 +190,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+          aws-region: eu-north-1
 
 
       - name: ecr-login
@@ -204,7 +206,6 @@ jobs:
         run: |
           docker push 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
   
-
 
   frontend-ecr-push:
     needs: docker-image
@@ -230,28 +231,24 @@ jobs:
       - name: image-build-and-tag
         working-directory: frontend
         run:  |
-            docker build \
-              --build-arg VITE_API_BASE_URL=http://ec2-56-228-27-102.eu-north-1.compute.amazonaws.com:8002 \
-              -t uber-frontend .
+            docker build -t uber-frontend .
             docker tag uber-frontend:latest 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
 
       - name: push-to-ecr
         run: |
           docker push 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
 
-
-
-  ec2-deployment:
+      
+  ec2-deployment-backend:
     needs:
       - backend-ecr-push
-      - frontend-ecr-push
     runs-on: ubuntu-latest
 
     steps:
-      - name: deploy-backend
+      - name: Deploy to EC2 on backend 
         uses: appleboy/ssh-action@v1.2.2
         with:
-          host: ${{ secrets.EC2_BACKEND_HOST }}
+          host: ${{ secrets.EC2_HOST_BACKEND }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
@@ -263,10 +260,17 @@ jobs:
             docker run -d --name uber-backend -p 8002:8002 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
             docker ps
 
-      - name: deploy-frontend
+
+  ec2-deployment-frontend:
+    needs:
+      - frontend-ecr-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2 on backend 
         uses: appleboy/ssh-action@v1.2.2
         with:
-          host: ${{ secrets.EC2_FRONTEND_HOST }}
+          host: ${{ secrets.EC2_HOST_FRONTEND}}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |

@@ -32,6 +32,10 @@ app.add_middleware(
 )
 
 
+
+
+
+
 @app.get('/')
 def home_page():
     return {
