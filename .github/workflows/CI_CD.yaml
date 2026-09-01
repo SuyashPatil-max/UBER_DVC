@@ -262,13 +262,34 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker stop uber-backend 2>/dev/null || true
-            docker rm uber-backend 2>/dev/null || true
-            docker rmi 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest 2>/dev/null || true
-            aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 942091278141.dkr.ecr.eu-north-1.amazonaws.com
-            docker pull 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
-            docker run -d --name uber-backend -p 8002:8002 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
-            docker ps
+            set -e
+
+            sudo apt-get update -y
+            sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+
+            if ! command -v docker >/dev/null 2>&1; then
+              sudo apt-get install -y docker.io
+            fi
+
+
+            sudo systemctl enable docker
+            sudo systemctl start docker
+
+            if ! command -v aws >/dev/null 2>&1; then
+              sudo apt-get install -y unzip curl
+              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip -q -o awscliv2.zip
+              sudo ./aws/install --update
+              rm -rf awscliv2.zip aws
+            fi
+
+            sudo docker stop uber-backend 2>/dev/null || true
+            sudo docker rm uber-backend 2>/dev/null || true
+            sudo docker rmi 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest 2>/dev/null || true
+            aws ecr get-login-password --region eu-north-1 | sudo docker login --username AWS --password-stdin 942091278141.dkr.ecr.eu-north-1.amazonaws.com
+            sudo docker pull 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
+            sudo docker run -d --name uber-backend -p 8002:8002 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
+            sudo docker ps
 
 
   ec2-deployment-frontend:
@@ -277,17 +298,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to EC2 on backend 
+      - name: Deploy to EC2 on frontend 
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.EC2_HOST_FRONTEND}}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker stop uber-frontend 2>/dev/null || true
-            docker rm uber-frontend 2>/dev/null || true
-            docker rmi 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest 2>/dev/null || true
-            aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 942091278141.dkr.ecr.eu-north-1.amazonaws.com
-            docker pull 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
-            docker run -d --name uber-frontend -p 5174:80 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
-            docker ps
+            set -e
+            sudo apt-get update -y
+            sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+
+            if ! command -v docker >/dev/null 2>&1; then
+              sudo apt-get install -y docker.io
+            fi
+
+            sudo systemctl enable docker
+            sudo systemctl start docker
+
+            if ! command -v aws >/dev/null 2>&1; then
+              sudo apt-get install -y unzip curl
+              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+              unzip -q -o awscliv2.zip
+              sudo ./aws/install --update
+              rm -rf awscliv2.zip aws
+            fi
+
+            sudo docker stop uber-frontend 2>/dev/null || true
+            sudo docker rm uber-frontend 2>/dev/null || true
+            sudo docker rmi 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest 2>/dev/null || true
+            aws ecr get-login-password --region eu-north-1 | sudo docker login --username AWS --password-stdin 942091278141.dkr.ecr.eu-north-1.amazonaws.com
+            sudo docker pull 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
+            sudo docker run -d --name uber-frontend -p 5174:80 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
+            sudo docker ps
