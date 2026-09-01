@@ -124,10 +124,11 @@ jobs:
       
 
       - name: install-dependencies
-        run: | 
+        run: |
             pip install --upgrade pip
             pip install dvc
             pip install dvc[s3]
+            pip install "pygtrie==2.5.0"
 
 
       - name: s3_config
@@ -177,10 +178,11 @@ jobs:
         uses: actions/setup-python@v5
       
       - name: install-dependencies
-        run: | 
+        run: |
             pip install --upgrade pip
             pip install dvc
             pip install dvc[s3]
+            pip install "pygtrie==2.5.0"
 
       - name: s3_config
         uses: aws-actions/configure-aws-credentials@v4

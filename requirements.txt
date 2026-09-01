@@ -19,6 +19,7 @@ pip
 mlflow==3.10.1
 optuna==4.6.0
 dvc==3.67.1
+pygtrie==2.5.0
 
 seaborn==0.13.2
 matplotlib==3.10.5
