@@ -230,7 +230,9 @@ jobs:
       - name: image-build-and-tag
         working-directory: frontend
         run:  |
-            docker build -t uber-frontend .
+            docker build \
+              --build-arg VITE_API_BASE_URL=http://ec2-56-228-27-102.eu-north-1.compute.amazonaws.com:8002 \
+              -t uber-frontend .
             docker tag uber-frontend:latest 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
 
       - name: push-to-ecr
@@ -238,28 +240,40 @@ jobs:
           docker push 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
 
 
-      
-  # ec2-deployment:
-  #   needs:
-  #     - backend-ecr-push
-  #     - frontend-ecr-push
-  #   runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Deploy to EC2
-  #       uses: appleboy/ssh-action@v1.2.2
-  #       with:
-  #         host: ${{ secrets.EC2_HOST }}
-  #         username: ${{ secrets.EC2_USER }}
-  #         key: ${{ secrets.EC2_SSH_KEY }}
-  #         script: |
-  #           docker stop uber_dvc uber-frontend 2>/dev/null || true
-  #           docker rm uber_dvc uber-frontend 2>/dev/null || true
-  #           docker rmi 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest 2>/dev/null || true
-  #           docker rmi 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest 2>/dev/null || true
-  #           aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 577267183471.dkr.ecr.ap-south-1.amazonaws.com
-  #           docker pull 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
-  #           docker pull 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
-  #           docker run -d --name uber_dvc -p 8002:8002 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber_dvc:latest
-  #           docker run -d --name uber-frontend -p 5174:80 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
-  #           docker ps
+  ec2-deployment:
+    needs:
+      - backend-ecr-push
+      - frontend-ecr-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: deploy-backend
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_BACKEND_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker stop uber-backend 2>/dev/null || true
+            docker rm uber-backend 2>/dev/null || true
+            docker rmi 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest 2>/dev/null || true
+            aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 942091278141.dkr.ecr.eu-north-1.amazonaws.com
+            docker pull 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
+            docker run -d --name uber-backend -p 8002:8002 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
+            docker ps
+
+      - name: deploy-frontend
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_FRONTEND_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker stop uber-frontend 2>/dev/null || true
+            docker rm uber-frontend 2>/dev/null || true
+            docker rmi 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest 2>/dev/null || true
+            aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 942091278141.dkr.ecr.eu-north-1.amazonaws.com
+            docker pull 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
+            docker run -d --name uber-frontend -p 5174:80 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
+            docker ps
