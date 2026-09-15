@@ -1,0 +1,36 @@
+version: 0.0
+os: linux
+
+# The deployment bundle only needs appspec.yml + deploy/scripts (not the whole repo) —
+# the actual app is a Docker image pulled from ECR at ApplicationStart time.
+files:
+  - source: deploy/scripts
+    destination: /opt/uber-backend/deploy/scripts
+
+permissions:
+  - object: /opt/uber-backend/deploy/scripts
+    pattern: "**"
+    owner: root
+    group: root
+    mode: 755
+
+hooks:
+  BeforeInstall:
+    - location: deploy/scripts/install_dependencies.sh
+      timeout: 300
+      runas: root
+
+  ApplicationStop:
+    - location: deploy/scripts/stop_docker.sh
+      timeout: 120
+      runas: root
+
+  ApplicationStart:
+    - location: deploy/scripts/start_docker.sh
+      timeout: 300
+      runas: root
+
+  ValidateService:
+    - location: deploy/scripts/validate_service.sh
+      timeout: 90
+      runas: root

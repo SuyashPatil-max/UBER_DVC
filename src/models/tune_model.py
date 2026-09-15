@@ -8,6 +8,7 @@ import dagshub
 import matplotlib.pyplot as plt
 import mlflow
 import mlflow.sklearn
+import numpy as np
 import optuna
 import pandas as pd
 import seaborn as sns
@@ -16,7 +17,10 @@ from catboost import CatBoostClassifier
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline
 from mlflow.models.signature import infer_signature
-from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score, roc_auc_score
+from sklearn.metrics import (
+    confusion_matrix, f1_score, precision_score, recall_score, roc_auc_score,
+    average_precision_score, balanced_accuracy_score, matthews_corrcoef, precision_recall_curve
+)
 from sklearn.model_selection import train_test_split
 
 logging.basicConfig(
@@ -50,6 +54,7 @@ def load_paths():
         return {
             "reports": reports_path,
             "tuning_cm_path": reports_path / "tuning_cm.png",
+            "tuning_pr_curve_path": reports_path / "tuning_pr_curve.png",
             "tuning_metrics_path": reports_path / "tuning_metrics.json",
             "tuning_trials_path": reports_path / "tuning_trials.csv",
             "tuning_study_db": reports_path / "tuning_study.db",
@@ -125,8 +130,18 @@ def make_objective(X_tr, y_tr, X_val, y_val, base_cat_params, base_smote_params,
             )
 
             y_pred = model.predict(X_val)
+            y_val_probs = model.predict_proba(X_val)[:, -1]
             recall = recall_score(y_val, y_pred)
             f1 = f1_score(y_val, y_pred)
+
+            # Optimization stays on (recall, f1) so the resumable optuna study
+            # keeps the same two-objective shape it was created with. These
+            # extra ones are logged purely for visibility per trial - with a
+            # ~10:1 imbalance, pr_auc/balanced_accuracy/mcc are the metrics
+            # worth eyeballing across trials, roc_auc alone would be misleading.
+            pr_auc = average_precision_score(y_val, y_val_probs)
+            balanced_acc = balanced_accuracy_score(y_val, y_pred)
+            mcc = matthews_corrcoef(y_val, y_pred)
 
             best_iteration = model.named_steps["catboost"].get_best_iteration()
             trial.set_user_attr("best_iteration", int(best_iteration) if best_iteration is not None else cat_params["iterations"])
@@ -135,7 +150,13 @@ def make_objective(X_tr, y_tr, X_val, y_val, base_cat_params, base_smote_params,
                 with mlflow.start_run(run_name=f"trial_{trial.number}", nested=True):
                     mlflow.log_params({f"catboost_{k}": v for k, v in cat_params.items()})
                     mlflow.log_params({f"smote_{k}": v for k, v in smote_params.items()})
-                    mlflow.log_metrics({"recall": recall, "f1_score": f1})
+                    mlflow.log_metrics({
+                        "recall": recall,
+                        "f1_score": f1,
+                        "pr_auc": pr_auc,
+                        "balanced_accuracy": balanced_acc,
+                        "mcc": mcc,
+                    })
             except Exception as mlflow_err:
                 logging.warning(f"Trial {trial.number} mlflow logging failed : {mlflow_err}")
 
@@ -221,16 +242,21 @@ def retrain_and_evaluate(tuned_params, X_train, y_train, X_test, y_test):
 
     y_pred = model.predict(X_test)
     y_probs = model.predict_proba(X_test)[:, -1]
+    y_true = np.asarray(y_test).ravel()
 
     metrics = {
-        "recall": recall_score(y_test, y_pred),
-        "precission": precision_score(y_test, y_pred),
-        "f1_score": f1_score(y_test, y_pred),
-        "roc_auc": roc_auc_score(y_test, y_probs),
+        "recall": recall_score(y_true, y_pred),
+        "precision": precision_score(y_true, y_pred),
+        "f1_score": f1_score(y_true, y_pred),
+        "roc_auc": roc_auc_score(y_true, y_probs),
+        "pr_auc": average_precision_score(y_true, y_probs),
+        "balanced_accuracy": balanced_accuracy_score(y_true, y_pred),
+        "mcc": matthews_corrcoef(y_true, y_pred),
+        "positive_class_prevalence": float(y_true.mean()),
     }
-    cm = confusion_matrix(y_test, y_pred)
+    cm = confusion_matrix(y_true, y_pred)
 
-    return metrics, cm, model
+    return metrics, cm, model, y_probs
 
 
 def cm_to_heatmap(cm, cm_path):
@@ -242,6 +268,28 @@ def cm_to_heatmap(cm, cm_path):
         plt.close()
     except Exception as e:
         logging.error(f"Error occured in saving cm : {e}")
+        raise e
+
+
+def pr_curve_plot(y_test, y_probs, pr_curve_path):
+    try:
+        logging.info(f"Saving the PR curve to {pr_curve_path}")
+        y_true = np.asarray(y_test).ravel()
+        precision, recall, _ = precision_recall_curve(y_true, y_probs)
+        baseline = y_true.mean()
+
+        plt.figure(figsize=(10, 7))
+        plt.plot(recall, precision, label="CatBoost + SMOTE (tuned)")
+        plt.axhline(baseline, color="grey", linestyle="--",
+                    label=f"Random baseline (prevalence = {baseline:.3f})")
+        plt.xlabel("Recall")
+        plt.ylabel("Precision")
+        plt.title("Precision-Recall curve (positive class = Incomplete)")
+        plt.legend()
+        plt.savefig(pr_curve_path, dpi=300, bbox_inches="tight")
+        plt.close()
+    except Exception as e:
+        logging.error(f"Error occured in saving pr curve : {e}")
         raise e
 
 
@@ -266,7 +314,7 @@ def save_outputs(study, tuned_params, metrics, baseline_metrics, paths):
     logging.info(f"Tuned params written back to {paths['params_path']}")
 
 
-def log_final_run(model, metrics, tuned_params, best_trial, train_data, test_data, params_path, cm_path, X_train, X_test, reports_path):
+def log_final_run(model, metrics, tuned_params, best_trial, train_data, test_data, params_path, cm_path, pr_curve_path, X_train, X_test, reports_path):
     try:
         logging.info("Logging tuned model and artifacts to mlflow : ")
 
@@ -285,6 +333,7 @@ def log_final_run(model, metrics, tuned_params, best_trial, train_data, test_dat
 
         mlflow.log_artifact(params_path)
         mlflow.log_artifact(cm_path)
+        mlflow.log_artifact(pr_curve_path)
 
         sig = infer_signature(X_train, model.predict(X_test))
         model_info = mlflow.sklearn.log_model(
@@ -348,20 +397,23 @@ def main():
             study, best_trial = tune(params, X_train, y_train, args.n_trials, args.timeout, paths["tuning_study_db"])
 
             tuned_params = build_tuned_params(params, best_trial)
-            metrics, cm, model = retrain_and_evaluate(tuned_params, X_train, y_train, X_test, y_test)
+            metrics, cm, model, y_probs = retrain_and_evaluate(tuned_params, X_train, y_train, X_test, y_test)
 
             logging.info(f"Tuned model metrics on held-out test set : {metrics}")
             if baseline_metrics:
                 logging.info(
                     f"Recall change : {baseline_metrics['recall']:.4f} -> {metrics['recall']:.4f} | "
-                    f"F1 change : {baseline_metrics['f1_score']:.4f} -> {metrics['f1_score']:.4f}"
+                    f"F1 change : {baseline_metrics['f1_score']:.4f} -> {metrics['f1_score']:.4f} | "
+                    f"PR-AUC : {baseline_metrics.get('pr_auc', 'n/a')} -> {metrics['pr_auc']:.4f}"
                 )
 
             cm_to_heatmap(cm, paths["tuning_cm_path"])
+            pr_curve_plot(y_test, y_probs, paths["tuning_pr_curve_path"])
             save_outputs(study, tuned_params, metrics, baseline_metrics, paths)
             log_final_run(
                 model, metrics, tuned_params, best_trial, train_data, test_data,
-                paths["params_path"], paths["tuning_cm_path"], X_train, X_test, paths["reports"],
+                paths["params_path"], paths["tuning_cm_path"], paths["tuning_pr_curve_path"],
+                X_train, X_test, paths["reports"],
             )
 
         logging.info("Hyperparameter tuning completed successfully")
