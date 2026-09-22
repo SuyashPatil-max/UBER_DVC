@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name:  uber-dvc
-          image: uber_image:v1
+          image: 942091278141.dkr.ecr.us-east-1.amazonaws.com/uber-k8-repo:latest
 
           resources:
             limits:
