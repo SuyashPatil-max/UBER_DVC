@@ -200,21 +200,21 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
-          aws-region: eu-north-1
+          aws-region: ap-south-1
 
 
       - name: ecr-login
         run: |
-          aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 942091278141.dkr.ecr.eu-north-1.amazonaws.com
+          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 577267183471.dkr.ecr.ap-south-1.amazonaws.com
 
       - name: build-tag-image
         run: |
-          docker build -t uber-backend .
-          docker tag uber-backend:latest 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
+          docker build -t uber-backend:latest .
+          docker tag uber-backend:latest 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber:latest
 
       - name: push-to-ecr
         run: |
-          docker push 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
+          docker push 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber:latest
   
 
   frontend-ecr-push:
@@ -232,119 +232,119 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
-          aws-region: eu-north-1
+          aws-region: ap-south-1
 
       - name: ecr-login
         run: |
-          aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 942091278141.dkr.ecr.eu-north-1.amazonaws.com
+          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 577267183471.dkr.ecr.ap-south-1.amazonaws.com
       
       - name: image-build-and-tag
         working-directory: frontend
-        env:
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'http://uber-lb-1-2111498017.eu-north-1.elb.amazonaws.com' }}
+        # env:
+        #   VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'http://uber-lb-1-2111498017.eu-north-1.elb.amazonaws.com' }}
         run:  |
-            docker build --build-arg VITE_API_BASE_URL="$VITE_API_BASE_URL" -t uber-frontend .
-            docker tag uber-frontend:latest 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
+            docker build -t uber-frontend:latest .
+            docker tag uber-frontend:latest 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
 
       - name: push-to-ecr
         run: |
-          docker push 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
+          docker push 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber-frontend:latest
 
       
-  ec2-deployment-backend:
-    needs:
-      - backend-ecr-push
-    runs-on: ubuntu-latest
+  # ec2-deployment-backend:
+  #   needs:
+  #     - backend-ecr-push
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Deploy to EC2 on backend
-        uses: appleboy/ssh-action@v1.2.2
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.ECR_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: eu-north-1
-        with:
-          host: ${{ secrets.EC2_HOST_BACKEND }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_DEFAULT_REGION
-          script: |
-            set -e
+  #   steps:
+  #     - name: Deploy to EC2 on backend
+  #       uses: appleboy/ssh-action@v1.2.2
+  #       env:
+  #         AWS_ACCESS_KEY_ID: ${{ secrets.ECR_ACCESS_KEY }}
+  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
+  #         AWS_DEFAULT_REGION: eu-north-1
+  #       with:
+  #         host: ${{ secrets.EC2_HOST_BACKEND }}
+  #         username: ${{ secrets.EC2_USER }}
+  #         key: ${{ secrets.EC2_SSH_KEY }}
+  #         envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_DEFAULT_REGION
+  #         script: |
+  #           set -e
 
-            export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_DEFAULT_REGION
+  #           export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_DEFAULT_REGION
 
-            sudo apt-get update -y
-            sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+  #           sudo apt-get update -y
+  #           sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
-            if ! command -v docker >/dev/null 2>&1; then
-              sudo apt-get install -y docker.io
-            fi
-
-
-            sudo systemctl enable docker
-            sudo systemctl start docker
-
-            if ! command -v aws >/dev/null 2>&1; then
-              sudo apt-get install -y unzip curl
-              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-              unzip -q -o awscliv2.zip
-              sudo ./aws/install --update
-              rm -rf awscliv2.zip aws
-            fi
-
-            sudo docker stop uber-backend 2>/dev/null || true
-            sudo docker rm uber-backend 2>/dev/null || true
-            sudo docker rmi 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest 2>/dev/null || true
-            aws ecr get-login-password --region eu-north-1 | sudo docker login --username AWS --password-stdin 942091278141.dkr.ecr.eu-north-1.amazonaws.com
-            sudo docker pull 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
-            sudo docker run -d --name uber-backend -p 8002:8002 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
-            sudo docker ps
+  #           if ! command -v docker >/dev/null 2>&1; then
+  #             sudo apt-get install -y docker.io
+  #           fi
 
 
-  ec2-deployment-frontend:
-    needs:
-      - frontend-ecr-push
-    runs-on: ubuntu-latest
+  #           sudo systemctl enable docker
+  #           sudo systemctl start docker
 
-    steps:
-      - name: Deploy to EC2 on frontend
-        uses: appleboy/ssh-action@v1.2.2
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.ECR_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: eu-north-1
-        with:
-          host: ${{ secrets.EC2_HOST_FRONTEND}}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_DEFAULT_REGION
-          script: |
-            set -e
+  #           if ! command -v aws >/dev/null 2>&1; then
+  #             sudo apt-get install -y unzip curl
+  #             curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  #             unzip -q -o awscliv2.zip
+  #             sudo ./aws/install --update
+  #             rm -rf awscliv2.zip aws
+  #           fi
 
-            export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_DEFAULT_REGION
+  #           sudo docker stop uber-backend 2>/dev/null || true
+  #           sudo docker rm uber-backend 2>/dev/null || true
+  #           sudo docker rmi 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest 2>/dev/null || true
+  #           aws ecr get-login-password --region eu-north-1 | sudo docker login --username AWS --password-stdin 942091278141.dkr.ecr.eu-north-1.amazonaws.com
+  #           sudo docker pull 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
+  #           sudo docker run -d --name uber-backend -p 8002:8002 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-backend:latest
+  #           sudo docker ps
 
-            sudo apt-get update -y
-            sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
-            if ! command -v docker >/dev/null 2>&1; then
-              sudo apt-get install -y docker.io
-            fi
+  # ec2-deployment-frontend:
+  #   needs:
+  #     - frontend-ecr-push
+  #   runs-on: ubuntu-latest
 
-            sudo systemctl enable docker
-            sudo systemctl start docker
+  #   steps:
+  #     - name: Deploy to EC2 on frontend
+  #       uses: appleboy/ssh-action@v1.2.2
+  #       env:
+  #         AWS_ACCESS_KEY_ID: ${{ secrets.ECR_ACCESS_KEY }}
+  #         AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
+  #         AWS_DEFAULT_REGION: eu-north-1
+  #       with:
+  #         host: ${{ secrets.EC2_HOST_FRONTEND}}
+  #         username: ${{ secrets.EC2_USER }}
+  #         key: ${{ secrets.EC2_SSH_KEY }}
+  #         envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_DEFAULT_REGION
+  #         script: |
+  #           set -e
 
-            if ! command -v aws >/dev/null 2>&1; then
-              sudo apt-get install -y unzip curl
-              curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-              unzip -q -o awscliv2.zip
-              sudo ./aws/install --update
-              rm -rf awscliv2.zip aws
-            fi
+  #           export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_DEFAULT_REGION
 
-            sudo docker stop uber-frontend 2>/dev/null || true
-            sudo docker rm uber-frontend 2>/dev/null || true
-            sudo docker rmi 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest 2>/dev/null || true
-            aws ecr get-login-password --region eu-north-1 | sudo docker login --username AWS --password-stdin 942091278141.dkr.ecr.eu-north-1.amazonaws.com
-            sudo docker pull 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
-            sudo docker run -d --name uber-frontend -p 5174:80 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
-            sudo docker ps
+  #           sudo apt-get update -y
+  #           sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+
+  #           if ! command -v docker >/dev/null 2>&1; then
+  #             sudo apt-get install -y docker.io
+  #           fi
+
+  #           sudo systemctl enable docker
+  #           sudo systemctl start docker
+
+  #           if ! command -v aws >/dev/null 2>&1; then
+  #             sudo apt-get install -y unzip curl
+  #             curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  #             unzip -q -o awscliv2.zip
+  #             sudo ./aws/install --update
+  #             rm -rf awscliv2.zip aws
+  #           fi
+
+  #           sudo docker stop uber-frontend 2>/dev/null || true
+  #           sudo docker rm uber-frontend 2>/dev/null || true
+  #           sudo docker rmi 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest 2>/dev/null || true
+  #           aws ecr get-login-password --region eu-north-1 | sudo docker login --username AWS --password-stdin 942091278141.dkr.ecr.eu-north-1.amazonaws.com
+  #           sudo docker pull 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
+  #           sudo docker run -d --name uber-frontend -p 5174:80 942091278141.dkr.ecr.eu-north-1.amazonaws.com/uber-frontend:latest
+  #           sudo docker ps

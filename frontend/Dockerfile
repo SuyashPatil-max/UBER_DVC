@@ -9,7 +9,7 @@ COPY . .
 
 
 # Point the frontend at the backend load balancer (listener on port 80), not a single EC2
-ARG VITE_API_BASE_URL=http://uber-lb-1-2111498017.eu-north-1.elb.amazonaws.com
+ARG VITE_API_BASE_URL=http://127.0.0.1:49965
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 RUN npm run build

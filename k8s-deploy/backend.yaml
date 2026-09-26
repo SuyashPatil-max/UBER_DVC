@@ -4,26 +4,36 @@ apiVersion: apps/v1
 kind: Deployment
 
 metadata:
-  name:  uber-dvc
+  name: uber-dvc
 
 spec:
   replicas: 3
 
   selector:
     matchLabels:
-      app:  uber-dvc
+      app: uber-dvc
 
   template:
     metadata:
       labels:
-        app:  uber-dvc
+        app: uber-dvc
 
     spec:
+      imagePullSecrets:
+        - name: ecr-secret
+
       containers:
-        - name:  uber-dvc
-          image: 942091278141.dkr.ecr.us-east-1.amazonaws.com/uber-k8-repo:latest
+        - name: uber-dvc
+
+          image: 577267183471.dkr.ecr.ap-south-1.amazonaws.com/uber:latest
+
+          imagePullPolicy: Always
 
           resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+
             limits:
               memory: "1024Mi"
               cpu: "500m"
